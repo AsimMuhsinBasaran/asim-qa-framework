@@ -25,7 +25,7 @@ public class RequestLogger {
 
         ConsoleLogger.line();
 
-        System.out.println(SensitiveDataMasker.mask(response.asPrettyString()));
+        ConsoleLogger.body(response.asPrettyString());
 
         ConsoleLogger.line();
     }
