@@ -1,7 +1,0 @@
-{
-    "id": 1001,
-    "name": "Test User",
-    "email": "testuser@example.com",
-    "role": "CUSTOMER",
-    "createdAt": "2025-01-01T10:00:00Z"
-}

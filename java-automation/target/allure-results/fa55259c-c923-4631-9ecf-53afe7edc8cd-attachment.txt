@@ -1,8 +1,0 @@
-{
-    "id": 1,
-    "name": "Wireless Headphones",
-    "price": 79.99,
-    "stock": 50,
-    "category": "electronics",
-    "description": "High quality wireless headphones with noise cancellation"
-}

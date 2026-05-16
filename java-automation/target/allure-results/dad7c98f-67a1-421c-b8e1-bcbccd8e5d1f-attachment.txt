@@ -1,2 +1,0 @@
-Expected Size: 2
-Actual Size: 2

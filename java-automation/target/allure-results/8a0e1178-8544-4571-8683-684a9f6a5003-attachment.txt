@@ -1,2 +1,0 @@
-Expected : NOT NULL
-Actual   : Wireless Headphones
