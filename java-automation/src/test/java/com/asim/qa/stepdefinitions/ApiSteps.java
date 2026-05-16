@@ -34,6 +34,7 @@ public class ApiSteps {
         context.setRequestBody(null);
         context.setResponse(null);
         context.setJsonPath(null);
+        context.setLastRequest(null);
         context.clearScenarioVariables();
 
         ConsoleLogger.info("Request State", "cleared before scenario");
@@ -92,6 +93,8 @@ public class ApiSteps {
 
         String resolvedEndpoint = resolveEndpoint(endpoint);
 
+        storeLastRequest("GET", resolvedEndpoint, null);
+
         context.setResponse(apiClient.get(resolvedEndpoint));
 
         context.setJsonPath(new JsonPath(context.getResponse().asString()));
@@ -112,6 +115,8 @@ public class ApiSteps {
 
         String resolvedEndpoint = resolveEndpoint(endpoint);
         String resolvedRequestBody = resolveRequestBody(requestBody);
+
+        storeLastRequest("POST", resolvedEndpoint, resolvedRequestBody);
 
         context.setResponse(apiClient.post(resolvedEndpoint, resolvedRequestBody));
 
@@ -138,6 +143,8 @@ public class ApiSteps {
 
         context.setRequestBody(JsonUtils.readJson(filePath));
         String resolvedRequestBody = resolveRequestBody(context.getRequestBody());
+
+        storeLastRequest("POST", resolvedEndpoint, resolvedRequestBody);
 
         context.setResponse(
                 apiClient.post(resolvedEndpoint, resolvedRequestBody)
@@ -190,6 +197,8 @@ public class ApiSteps {
 
         String resolvedEndpoint = resolveEndpoint(endpoint);
         String resolvedRequestBody = resolveRequestBody(context.getRequestBody());
+
+        storeLastRequest("POST", resolvedEndpoint, resolvedRequestBody);
 
         context.setResponse(
                 apiClient.post(resolvedEndpoint, resolvedRequestBody)
@@ -346,6 +355,8 @@ public class ApiSteps {
 
         String resolvedEndpoint = resolveEndpoint(endpoint);
 
+        storeLastRequest(method, resolvedEndpoint, null);
+
         context.setResponse(
                 apiClient.sendRequest(method, resolvedEndpoint, null)
         );
@@ -372,6 +383,8 @@ public class ApiSteps {
 
         String resolvedEndpoint = resolveEndpoint(endpoint);
         String resolvedRequestBody = resolveRequestBody(context.getRequestBody());
+
+        storeLastRequest(method, resolvedEndpoint, resolvedRequestBody);
 
         context.setResponse(
                 apiClient.sendRequest(
@@ -400,6 +413,20 @@ public class ApiSteps {
                 resolvedEndpoint,
                 apiClient.getHeaders(),
                 context.getResponse()
+        );
+    }
+
+    private void storeLastRequest(String method, String endpoint, String body) {
+
+        context.setLastRequest(
+                new TestContext.LastRequest(
+                        method.toUpperCase(),
+                        endpoint,
+                        body,
+                        apiClient.getHeadersSnapshot(),
+                        apiClient.getPathParamsSnapshot(),
+                        apiClient.getQueryParamsSnapshot()
+                )
         );
     }
 

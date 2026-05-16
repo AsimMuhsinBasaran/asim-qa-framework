@@ -33,6 +33,21 @@ public class ApiClient {
         return headers;
     }
 
+    public Map<String, String> getHeadersSnapshot() {
+
+        return new HashMap<>(headers);
+    }
+
+    public Map<String, String> getPathParamsSnapshot() {
+
+        return new LinkedHashMap<>(pathParams);
+    }
+
+    public Map<String, String> getQueryParamsSnapshot() {
+
+        return new LinkedHashMap<>(queryParams);
+    }
+
     public ApiClient() {
 
         headers.put("Content-Type", "application/json");
