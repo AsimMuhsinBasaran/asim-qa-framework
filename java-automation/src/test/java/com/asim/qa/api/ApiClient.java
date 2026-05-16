@@ -1,6 +1,7 @@
 package com.asim.qa.api;
 
 import com.asim.qa.config.ConfigReader;
+import com.asim.qa.utils.ConsoleLogger;
 import io.restassured.builder.ResponseBuilder;
 import io.restassured.http.Header;
 import io.restassured.http.Headers;
@@ -12,6 +13,10 @@ import org.apache.http.HttpEntity;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
+import java.net.ConnectException;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -23,6 +28,9 @@ import static io.restassured.config.HttpClientConfig.httpClientConfig;
 import static io.restassured.config.RestAssuredConfig.config;
 
 public class ApiClient {
+
+    private static final int MAX_GET_RETRY_COUNT = 2;
+    private static final long GET_RETRY_DELAY_MILLIS = 1000;
 
     private final Map<String, String> headers = new HashMap<>();
     private final Map<String, String> pathParams = new LinkedHashMap<>();
@@ -160,7 +168,7 @@ public class ApiClient {
 
         try {
             return switch (normalizedMethod) {
-                case "GET", "POST", "PUT", "PATCH", "DELETE" -> executeRequest(spec, normalizedMethod, endpoint);
+                case "GET", "POST", "PUT", "PATCH", "DELETE" -> executeRequestWithRetry(spec, normalizedMethod, endpoint);
                 default -> throw new IllegalArgumentException("Unsupported HTTP method: " + method);
             };
         } finally {
@@ -192,9 +200,38 @@ public class ApiClient {
         String normalizedMethod = method.toUpperCase();
 
         return switch (normalizedMethod) {
-            case "GET", "POST", "PUT", "PATCH", "DELETE" -> executeRequest(spec, normalizedMethod, endpoint);
+            case "GET", "POST", "PUT", "PATCH", "DELETE" -> executeRequestWithRetry(spec, normalizedMethod, endpoint);
             default -> throw new IllegalArgumentException("Unsupported HTTP method: " + method);
         };
+    }
+
+    private Response executeRequestWithRetry(RequestSpecification spec, String method, String endpoint) {
+
+        if (!"GET".equals(method)) {
+            return executeRequest(spec, method, endpoint);
+        }
+
+        for (int attempt = 0; attempt <= MAX_GET_RETRY_COUNT; attempt++) {
+            try {
+                Response response = executeRequest(spec, method, endpoint);
+
+                if (!isRetryableStatus(response.statusCode()) || attempt == MAX_GET_RETRY_COUNT) {
+                    return response;
+                }
+
+                logRetry(attempt + 1, "HTTP status " + response.statusCode());
+            } catch (Exception e) {
+                if (!isRetryableException(e) || attempt == MAX_GET_RETRY_COUNT) {
+                    return rethrow(e);
+                }
+
+                logRetry(attempt + 1, retryReason(e));
+            }
+
+            waitBeforeRetry();
+        }
+
+        throw new IllegalStateException("GET retry flow ended without a response.");
     }
 
     private Response executeRequest(RequestSpecification spec, String method, String endpoint) {
@@ -242,6 +279,68 @@ public class ApiClient {
         }
 
         return builder.build();
+    }
+
+    private boolean isRetryableStatus(int statusCode) {
+
+        return statusCode == 502 || statusCode == 503 || statusCode == 504;
+    }
+
+    private boolean isRetryableException(Throwable throwable) {
+
+        return retryReason(throwable) != null;
+    }
+
+    private String retryReason(Throwable throwable) {
+
+        Throwable current = throwable;
+
+        while (current != null) {
+            if (current instanceof SocketTimeoutException) {
+                return "Socket timeout";
+            }
+
+            if (current instanceof ConnectException) {
+                return "Connect exception";
+            }
+
+            if (current instanceof UnknownHostException) {
+                return "Unknown host";
+            }
+
+            if (isConnectionReset(current)) {
+                return "Connection reset";
+            }
+
+            current = current.getCause();
+        }
+
+        return null;
+    }
+
+    private boolean isConnectionReset(Throwable throwable) {
+
+        String message = throwable.getMessage();
+
+        return throwable instanceof SocketException
+                && message != null
+                && message.toLowerCase().contains("connection reset");
+    }
+
+    private void logRetry(int retryAttempt, String retryReason) {
+
+        ConsoleLogger.info("Retry Attempt", retryAttempt + "/" + MAX_GET_RETRY_COUNT);
+        ConsoleLogger.info("Retry Reason", retryReason);
+    }
+
+    private void waitBeforeRetry() {
+
+        try {
+            Thread.sleep(GET_RETRY_DELAY_MILLIS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("GET retry interrupted while waiting for next attempt.", e);
+        }
     }
 
     @SuppressWarnings("unchecked")
