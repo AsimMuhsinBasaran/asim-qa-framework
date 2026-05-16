@@ -104,3 +104,11 @@ Feature: API Tests
     Then response status code should be 200
     And response field "id" should be "1"
     And response field "title" should not be null
+
+  @mock @e2e
+  Scenario: Poll last GET request successfully
+    Given base url is configured
+    And user sends "GET" request to "/posts/1"
+    And user polls last request until response status code should be 200 within 1 seconds every 1 second
+    And user polls last request until response field "id" should be "1" within 1 seconds every 1 second
+    And user polls last request until response field "title" should not be null within 1 seconds every 1 second

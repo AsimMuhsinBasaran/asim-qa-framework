@@ -416,6 +416,56 @@ public class ApiSteps {
         );
     }
 
+    @And("^user polls last request until response status code should be (\\d+) within (\\d+) seconds every (\\d+) seconds?$")
+    public void user_polls_last_request_until_response_status_code_should_be_within_seconds_every_second(
+            int expectedStatusCode,
+            long timeoutSeconds,
+            long intervalSeconds
+    ) {
+
+        PollingUtils.pollLastRequestUntilStatusCode(
+                context,
+                apiClient,
+                expectedStatusCode,
+                timeoutSeconds,
+                intervalSeconds
+        );
+    }
+
+    @And("^user polls last request until response field \"([^\"]+)\" should be \"([^\"]+)\" within (\\d+) seconds every (\\d+) seconds?$")
+    public void user_polls_last_request_until_response_field_should_be_within_seconds_every_second(
+            String field,
+            String expectedValue,
+            long timeoutSeconds,
+            long intervalSeconds
+    ) {
+
+        PollingUtils.pollLastRequestUntilFieldEquals(
+                context,
+                apiClient,
+                field,
+                expectedValue,
+                timeoutSeconds,
+                intervalSeconds
+        );
+    }
+
+    @And("^user polls last request until response field \"([^\"]+)\" should not be null within (\\d+) seconds every (\\d+) seconds?$")
+    public void user_polls_last_request_until_response_field_should_not_be_null_within_seconds_every_second(
+            String field,
+            long timeoutSeconds,
+            long intervalSeconds
+    ) {
+
+        PollingUtils.pollLastRequestUntilFieldNotNull(
+                context,
+                apiClient,
+                field,
+                timeoutSeconds,
+                intervalSeconds
+        );
+    }
+
     private void storeLastRequest(String method, String endpoint, String body) {
 
         context.setLastRequest(

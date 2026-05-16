@@ -88,6 +88,11 @@ public class ApiClient {
 
     private RequestSpecification requestSpec() {
 
+        return requestSpec(headers);
+    }
+
+    private RequestSpecification requestSpec(Map<String, String> requestHeaders) {
+
         int timeoutMs = ConfigReader.getApiTimeoutMs();
 
         return given()
@@ -97,7 +102,7 @@ public class ApiClient {
                                 .setParam("http.socket.timeout", timeoutMs)
                                 .setParam("http.connection-manager.timeout", (long) timeoutMs)
                 ))
-                .headers(headers);
+                .headers(requestHeaders);
     }
 
     public Response get(String endpoint) {
@@ -136,6 +141,35 @@ public class ApiClient {
         } finally {
             clearParams();
         }
+    }
+
+    public Response sendRequest(String method,
+                                String endpoint,
+                                String body,
+                                Map<String, String> requestHeaders,
+                                Map<String, String> requestPathParams,
+                                Map<String, String> requestQueryParams) {
+
+        RequestSpecification spec = requestSpec(requestHeaders);
+
+        if (!requestPathParams.isEmpty()) {
+            spec.pathParams(requestPathParams);
+        }
+
+        if (!requestQueryParams.isEmpty()) {
+            spec.queryParams(requestQueryParams);
+        }
+
+        if (body != null && !body.isBlank()) {
+            spec.body(body);
+        }
+
+        String normalizedMethod = method.toUpperCase();
+
+        return switch (normalizedMethod) {
+            case "GET", "POST", "PUT", "PATCH", "DELETE" -> executeRequest(spec, normalizedMethod, endpoint);
+            default -> throw new IllegalArgumentException("Unsupported HTTP method: " + method);
+        };
     }
 
     private Response executeRequest(RequestSpecification spec, String method, String endpoint) {
