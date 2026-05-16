@@ -1,5 +1,6 @@
 package com.asim.qa.api;
 
+import com.asim.qa.config.ConfigReader;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 
@@ -7,6 +8,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
+import static io.restassured.config.HttpClientConfig.httpClientConfig;
+import static io.restassured.config.RestAssuredConfig.config;
 
 public class ApiClient {
 
@@ -36,7 +39,15 @@ public class ApiClient {
 
     private RequestSpecification requestSpec() {
 
+        int timeoutMs = ConfigReader.getApiTimeoutMs();
+
         return given()
+                .config(config().httpClient(
+                        httpClientConfig()
+                                .setParam("http.connection.timeout", timeoutMs)
+                                .setParam("http.socket.timeout", timeoutMs)
+                                .setParam("http.connection-manager.timeout", (long) timeoutMs)
+                ))
                 .headers(headers);
     }
 

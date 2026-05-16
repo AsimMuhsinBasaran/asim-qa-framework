@@ -37,4 +37,19 @@ public class ConfigReader {
         return get("base.url." + env);
 
     }
+
+    public static int getApiTimeoutMs() {
+
+        String timeout = get("api.timeout.ms");
+
+        if (timeout == null || timeout.isBlank()) {
+            throw new RuntimeException("api.timeout.ms config değeri bulunamadı!");
+        }
+
+        try {
+            return Integer.parseInt(timeout);
+        } catch (NumberFormatException e) {
+            throw new RuntimeException("api.timeout.ms geçerli bir sayı olmalı: " + timeout, e);
+        }
+    }
 }
