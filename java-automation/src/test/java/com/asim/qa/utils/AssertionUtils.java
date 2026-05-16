@@ -15,15 +15,17 @@ public class AssertionUtils {
     public static void assertField(Object actual, String expected, String fieldName) {
 
         String actualValue = String.valueOf(actual);
+        String maskedExpected = SensitiveDataMasker.mask(fieldName, expected);
+        String maskedActual = SensitiveDataMasker.mask(fieldName, actualValue);
 
         ConsoleLogger.info("Field", fieldName);
-        ConsoleLogger.info("Expected", expected);
-        ConsoleLogger.info("Actual", actualValue);
+        ConsoleLogger.info("Expected", maskedExpected);
+        ConsoleLogger.info("Actual", maskedActual);
 
         Allure.addAttachment(
                 "Assertion - " + fieldName,
-                "Expected : " + expected + "\n" +
-                        "Actual   : " + actualValue
+                "Expected : " + maskedExpected + "\n" +
+                        "Actual   : " + maskedActual
         );
 
         try {
@@ -42,9 +44,11 @@ public class AssertionUtils {
 
         ConsoleLogger.info("Field", fieldName);
 
+        String maskedActual = SensitiveDataMasker.mask(fieldName, actual);
+
         ConsoleLogger.info("Expected", "NOT NULL");
 
-        ConsoleLogger.info("Actual", actual);
+        ConsoleLogger.info("Actual", maskedActual);
 
         Allure.addAttachment(
 
@@ -52,7 +56,7 @@ public class AssertionUtils {
 
                 "Expected : NOT NULL\n" +
 
-                        "Actual   : " + actual
+                        "Actual   : " + maskedActual
 
         );
 
@@ -107,16 +111,18 @@ public class AssertionUtils {
     public static void assertFieldContains(String key, Object actual, String expected) {
 
         String actualValue = String.valueOf(actual);
+        String maskedExpected = SensitiveDataMasker.mask(key, expected);
+        String maskedActual = SensitiveDataMasker.mask(key, actualValue);
 
         ConsoleLogger.info("Field", key);
-        ConsoleLogger.info("Expected Contains", expected);
-        ConsoleLogger.info("Actual", actualValue);
+        ConsoleLogger.info("Expected Contains", maskedExpected);
+        ConsoleLogger.info("Actual", maskedActual);
 
         Allure.addAttachment(
                 "Assertion - " + key,
                 "Field: " + key + "\n" +
-                        "Expected Contains: " + expected + "\n" +
-                        "Actual: " + actualValue
+                        "Expected Contains: " + maskedExpected + "\n" +
+                        "Actual: " + maskedActual
         );
 
         try {
@@ -195,12 +201,12 @@ public class AssertionUtils {
 
         ConsoleLogger.info("Field", field);
         ConsoleLogger.info("Expected", null);
-        ConsoleLogger.info("Actual", actualValue);
+        ConsoleLogger.info("Actual", SensitiveDataMasker.mask(field, actualValue));
 
         Allure.addAttachment(
                 "Assertion - " + field,
                 "Expected: null" +
-                        "\nActual: " + actualValue
+                        "\nActual: " + SensitiveDataMasker.mask(field, actualValue)
         );
 
         try {
@@ -276,6 +282,7 @@ public class AssertionUtils {
     public static void assertFieldExists(String field, Object actualValue) {
 
         boolean exists = actualValue != null;
+        String maskedActual = SensitiveDataMasker.mask(field, actualValue);
 
         ConsoleLogger.info("Field", field);
         ConsoleLogger.info("Expected", "EXISTS");
@@ -283,10 +290,10 @@ public class AssertionUtils {
 
         Allure.addAttachment(
                 "Assertion - " + field + " Exists",
-                "Field: " + field + "\n" +
+                        "Field: " + field + "\n" +
                         "Expected: EXISTS\n" +
                         "Actual Exists: " + exists + "\n" +
-                        "Actual Value: " + actualValue
+                        "Actual Value: " + maskedActual
         );
 
         try {
@@ -304,6 +311,7 @@ public class AssertionUtils {
     public static void assertFieldNotExists(String field, Object actualValue) {
 
         boolean exists = actualValue != null;
+        String maskedActual = SensitiveDataMasker.mask(field, actualValue);
 
         ConsoleLogger.info("Field", field);
         ConsoleLogger.info("Expected", "NOT EXISTS");
@@ -311,10 +319,10 @@ public class AssertionUtils {
 
         Allure.addAttachment(
                 "Assertion - " + field + " Not Exists",
-                "Field: " + field + "\n" +
+                        "Field: " + field + "\n" +
                         "Expected: NOT EXISTS\n" +
                         "Actual Exists: " + exists + "\n" +
-                        "Actual Value: " + actualValue
+                        "Actual Value: " + maskedActual
         );
 
         try {
@@ -336,16 +344,18 @@ public class AssertionUtils {
         java.util.List<String> normalizedValues = actualValues.stream()
                 .map(String::valueOf)
                 .toList();
+        String maskedExpected = SensitiveDataMasker.mask(field, expectedValue);
+        String maskedActual = SensitiveDataMasker.mask(field, normalizedValues);
 
         ConsoleLogger.info("Field", field);
-        ConsoleLogger.info("Expected Value", expectedValue);
-        ConsoleLogger.info("Actual Values", normalizedValues);
+        ConsoleLogger.info("Expected Value", maskedExpected);
+        ConsoleLogger.info("Actual Values", maskedActual);
 
         Allure.addAttachment(
                 "Assertion - " + field + " Array Contains",
-                "Field: " + field + "\n" +
-                        "Expected Value: " + expectedValue + "\n" +
-                        "Actual Values: " + normalizedValues
+                        "Field: " + field + "\n" +
+                        "Expected Value: " + maskedExpected + "\n" +
+                        "Actual Values: " + maskedActual
         );
 
         try {

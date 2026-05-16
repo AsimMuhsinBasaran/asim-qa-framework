@@ -11,14 +11,14 @@ public class ConsoleLogger {
 
     public static void info(String key, Object value) {
 
-        System.out.printf("🔹 %-20s : %s%n", key, value);
+        System.out.printf("🔹 %-20s : %s%n", key, SensitiveDataMasker.mask(value));
     }
 
     public static void assertion(String field, Object expected, Object actual) {
 
         info("Field", field);
-        info("Expected", expected);
-        info("Actual", actual);
+        info("Expected", SensitiveDataMasker.mask(field, expected));
+        info("Actual", SensitiveDataMasker.mask(field, actual));
     }
 
     public static void pass(String message) {
