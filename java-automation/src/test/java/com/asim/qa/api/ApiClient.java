@@ -14,6 +14,7 @@ import org.apache.http.util.EntityUtils;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,6 +25,8 @@ import static io.restassured.config.RestAssuredConfig.config;
 public class ApiClient {
 
     private final Map<String, String> headers = new HashMap<>();
+    private final Map<String, String> pathParams = new LinkedHashMap<>();
+    private final Map<String, String> queryParams = new LinkedHashMap<>();
 
     public Map<String, String> getHeaders() {
 
@@ -40,11 +43,32 @@ public class ApiClient {
         headers.put(key, value);
     }
 
+    public void addPathParam(String key, String value) {
+
+        pathParams.put(key, value);
+    }
+
+    public void addQueryParam(String key, String value) {
+
+        queryParams.put(key, value);
+    }
+
+    public boolean hasPathParam(String key) {
+
+        return pathParams.containsKey(key);
+    }
+
     public void clearHeaders() {
 
         headers.clear();
 
         headers.put("Content-Type", "application/json");
+    }
+
+    public void clearParams() {
+
+        pathParams.clear();
+        queryParams.clear();
     }
 
     private RequestSpecification requestSpec() {
@@ -75,16 +99,28 @@ public class ApiClient {
 
         RequestSpecification spec = requestSpec();
 
+        if (!pathParams.isEmpty()) {
+            spec.pathParams(pathParams);
+        }
+
+        if (!queryParams.isEmpty()) {
+            spec.queryParams(queryParams);
+        }
+
         if (body != null && !body.isBlank()) {
             spec.body(body);
         }
 
         String normalizedMethod = method.toUpperCase();
 
-        return switch (normalizedMethod) {
-            case "GET", "POST", "PUT", "PATCH", "DELETE" -> executeRequest(spec, normalizedMethod, endpoint);
-            default -> throw new IllegalArgumentException("Unsupported HTTP method: " + method);
-        };
+        try {
+            return switch (normalizedMethod) {
+                case "GET", "POST", "PUT", "PATCH", "DELETE" -> executeRequest(spec, normalizedMethod, endpoint);
+                default -> throw new IllegalArgumentException("Unsupported HTTP method: " + method);
+            };
+        } finally {
+            clearParams();
+        }
     }
 
     private Response executeRequest(RequestSpecification spec, String method, String endpoint) {

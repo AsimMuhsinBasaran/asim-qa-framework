@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 public class ApiSteps {
 
     private static final Pattern REQUEST_BODY_PLACEHOLDER_PATTERN = Pattern.compile("\\{([A-Za-z0-9_.-]+)}");
+    private static final Pattern ENDPOINT_PLACEHOLDER_PATTERN = Pattern.compile("\\{([^{}]+)}");
 
     String baseUrl;
     private final TestContext context;
@@ -29,6 +30,7 @@ public class ApiSteps {
     public void reset_request_state() {
 
         apiClient.clearHeaders();
+        apiClient.clearParams();
         context.setRequestBody(null);
         context.setResponse(null);
         context.setJsonPath(null);
@@ -60,11 +62,35 @@ public class ApiSteps {
         AllureUtils.attachRequest("Header Added", key + " = " + resolvedValue);
     }
 
+    @And("user sets path param {string} as {string}")
+    public void user_sets_path_param_as(String key, String value) {
+
+        String resolvedValue = context.resolve(value);
+
+        apiClient.addPathParam(key, resolvedValue);
+
+        ConsoleLogger.info("Path Param Added", key + " = " + resolvedValue);
+
+        AllureUtils.attachRequest("Path Param Added", key + " = " + resolvedValue);
+    }
+
+    @And("user sets query param {string} as {string}")
+    public void user_sets_query_param_as(String key, String value) {
+
+        String resolvedValue = context.resolve(value);
+
+        apiClient.addQueryParam(key, resolvedValue);
+
+        ConsoleLogger.info("Query Param Added", key + " = " + resolvedValue);
+
+        AllureUtils.attachRequest("Query Param Added", key + " = " + resolvedValue);
+    }
+
     // Deprecated: Use user_sends_request_to instead
     @When("user sends GET request to {string}")
     public void user_sends_get_request_to(String endpoint) {
 
-        String resolvedEndpoint = context.resolve(endpoint);
+        String resolvedEndpoint = resolveEndpoint(endpoint);
 
         context.setResponse(apiClient.get(resolvedEndpoint));
 
@@ -84,7 +110,7 @@ public class ApiSteps {
     @When("user sends POST request to {string} with body")
     public void user_sends_post_request_to_with_body(String endpoint, String requestBody) {
 
-        String resolvedEndpoint = context.resolve(endpoint);
+        String resolvedEndpoint = resolveEndpoint(endpoint);
         String resolvedRequestBody = resolveRequestBody(requestBody);
 
         context.setResponse(apiClient.post(resolvedEndpoint, resolvedRequestBody));
@@ -108,7 +134,7 @@ public class ApiSteps {
     @When("user sends POST request to {string} with json file {string}")
     public void user_sends_post_request_to_with_json_file(String endpoint, String filePath) {
 
-        String resolvedEndpoint = context.resolve(endpoint);
+        String resolvedEndpoint = resolveEndpoint(endpoint);
 
         context.setRequestBody(JsonUtils.readJson(filePath));
         String resolvedRequestBody = resolveRequestBody(context.getRequestBody());
@@ -162,7 +188,7 @@ public class ApiSteps {
     @When("user sends POST request to {string} with loaded body")
     public void user_sends_post_request_to_with_loaded_body(String endpoint) {
 
-        String resolvedEndpoint = context.resolve(endpoint);
+        String resolvedEndpoint = resolveEndpoint(endpoint);
         String resolvedRequestBody = resolveRequestBody(context.getRequestBody());
 
         context.setResponse(
@@ -318,7 +344,7 @@ public class ApiSteps {
     @When("user sends {string} request to {string}")
     public void user_sends_request_to(String method, String endpoint) {
 
-        String resolvedEndpoint = context.resolve(endpoint);
+        String resolvedEndpoint = resolveEndpoint(endpoint);
 
         context.setResponse(
                 apiClient.sendRequest(method, resolvedEndpoint, null)
@@ -344,7 +370,7 @@ public class ApiSteps {
     @When("user sends {string} request to {string} with loaded body")
     public void user_sends_request_to_with_loaded_body(String method, String endpoint) {
 
-        String resolvedEndpoint = context.resolve(endpoint);
+        String resolvedEndpoint = resolveEndpoint(endpoint);
         String resolvedRequestBody = resolveRequestBody(context.getRequestBody());
 
         context.setResponse(
@@ -375,6 +401,27 @@ public class ApiSteps {
                 apiClient.getHeaders(),
                 context.getResponse()
         );
+    }
+
+    private String resolveEndpoint(String endpoint) {
+
+        if (endpoint == null || !endpoint.contains("{")) return endpoint;
+
+        Matcher matcher = ENDPOINT_PLACEHOLDER_PATTERN.matcher(endpoint);
+        StringBuffer resolvedEndpoint = new StringBuffer();
+
+        while (matcher.find()) {
+            String placeholderName = matcher.group(1);
+            String replacement = apiClient.hasPathParam(placeholderName)
+                    ? matcher.group()
+                    : context.resolve(matcher.group());
+
+            matcher.appendReplacement(resolvedEndpoint, Matcher.quoteReplacement(replacement));
+        }
+
+        matcher.appendTail(resolvedEndpoint);
+
+        return resolvedEndpoint.toString();
     }
 
     private String resolveRequestBody(String requestBody) {
