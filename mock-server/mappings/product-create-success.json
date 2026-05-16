@@ -1,10 +1,11 @@
 {
+  "priority": 10,
   "request": {
     "method": "POST",
     "url": "/products",
     "bodyPatterns": [
       { "matchesJsonPath": "$.name" },
-      { "matchesJsonPath": "$.price" }
+      { "matchesJsonPath": "$[?(@.price > 0)]" }
     ]
   },
   "response": {
