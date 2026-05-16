@@ -10,8 +10,12 @@ import com.asim.qa.context.TestContext;
 import io.restassured.path.json.JsonPath;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ApiSteps {
+
+    private static final Pattern REQUEST_BODY_PLACEHOLDER_PATTERN = Pattern.compile("\\{([A-Za-z0-9_.-]+)}");
 
     String baseUrl;
     private final TestContext context;
@@ -81,14 +85,15 @@ public class ApiSteps {
     public void user_sends_post_request_to_with_body(String endpoint, String requestBody) {
 
         String resolvedEndpoint = context.resolve(endpoint);
+        String resolvedRequestBody = resolveRequestBody(requestBody);
 
-        context.setResponse(apiClient.post(resolvedEndpoint, requestBody));
+        context.setResponse(apiClient.post(resolvedEndpoint, resolvedRequestBody));
 
         context.setJsonPath(
                 new JsonPath(context.getResponse().asString())
         );
 
-        AllureUtils.attachRequest("POST Request Body", requestBody);
+        AllureUtils.attachRequest("POST Request Body", resolvedRequestBody);
         AllureUtils.attachResponse("POST Response Body", context.getResponse().asPrettyString());
 
         RequestLogger.logRequest(
@@ -106,16 +111,17 @@ public class ApiSteps {
         String resolvedEndpoint = context.resolve(endpoint);
 
         context.setRequestBody(JsonUtils.readJson(filePath));
+        String resolvedRequestBody = resolveRequestBody(context.getRequestBody());
 
         context.setResponse(
-                apiClient.post(resolvedEndpoint, context.getRequestBody())
+                apiClient.post(resolvedEndpoint, resolvedRequestBody)
         );
 
         context.setJsonPath(
                 new JsonPath(context.getResponse().asString())
         );
 
-        AllureUtils.attachRequest("POST Request Body", context.getRequestBody());
+        AllureUtils.attachRequest("POST Request Body", resolvedRequestBody);
         AllureUtils.attachResponse("POST Response Body", context.getResponse().asPrettyString());
 
         RequestLogger.logRequest(
@@ -157,16 +163,17 @@ public class ApiSteps {
     public void user_sends_post_request_to_with_loaded_body(String endpoint) {
 
         String resolvedEndpoint = context.resolve(endpoint);
+        String resolvedRequestBody = resolveRequestBody(context.getRequestBody());
 
         context.setResponse(
-                apiClient.post(resolvedEndpoint, context.getRequestBody())
+                apiClient.post(resolvedEndpoint, resolvedRequestBody)
         );
 
         context.setJsonPath(
                 new JsonPath(context.getResponse().asString())
         );
 
-        AllureUtils.attachRequest("Final Request Body", context.getRequestBody());
+        AllureUtils.attachRequest("Final Request Body", resolvedRequestBody);
         AllureUtils.attachResponse("POST Response Body", context.getResponse().asPrettyString());
 
         RequestLogger.logRequest(
@@ -338,12 +345,13 @@ public class ApiSteps {
     public void user_sends_request_to_with_loaded_body(String method, String endpoint) {
 
         String resolvedEndpoint = context.resolve(endpoint);
+        String resolvedRequestBody = resolveRequestBody(context.getRequestBody());
 
         context.setResponse(
                 apiClient.sendRequest(
                         method,
                         resolvedEndpoint,
-                        context.getRequestBody()
+                        resolvedRequestBody
                 )
         );
 
@@ -353,7 +361,7 @@ public class ApiSteps {
 
         AllureUtils.attachRequest(
                 method + " Request Body",
-                context.getRequestBody()
+                resolvedRequestBody
         );
 
         AllureUtils.attachResponse(
@@ -367,5 +375,22 @@ public class ApiSteps {
                 apiClient.getHeaders(),
                 context.getResponse()
         );
+    }
+
+    private String resolveRequestBody(String requestBody) {
+
+        if (requestBody == null || !requestBody.contains("{")) return requestBody;
+
+        Matcher matcher = REQUEST_BODY_PLACEHOLDER_PATTERN.matcher(requestBody);
+        StringBuffer resolvedBody = new StringBuffer();
+
+        while (matcher.find()) {
+            String resolvedValue = context.resolve(matcher.group());
+            matcher.appendReplacement(resolvedBody, Matcher.quoteReplacement(resolvedValue));
+        }
+
+        matcher.appendTail(resolvedBody);
+
+        return resolvedBody.toString();
     }
 }
