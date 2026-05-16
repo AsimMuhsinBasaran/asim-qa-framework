@@ -1,10 +1,20 @@
 package com.asim.qa.api;
 
 import com.asim.qa.config.ConfigReader;
+import io.restassured.builder.ResponseBuilder;
+import io.restassured.http.Header;
+import io.restassured.http.Headers;
+import io.restassured.internal.http.HttpResponseDecorator;
+import io.restassured.internal.http.HttpResponseException;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import org.apache.http.HttpEntity;
+import org.apache.http.util.EntityUtils;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
@@ -53,17 +63,12 @@ public class ApiClient {
 
     public Response get(String endpoint) {
 
-        return requestSpec()
-                .when()
-                .get(endpoint);
+        return sendRequest("GET", endpoint, null);
     }
 
     public Response post(String endpoint, String body) {
 
-        return requestSpec()
-                .body(body)
-                .when()
-                .post(endpoint);
+        return sendRequest("POST", endpoint, body);
     }
 
     public Response sendRequest(String method, String endpoint, String body) {
@@ -74,13 +79,64 @@ public class ApiClient {
             spec.body(body);
         }
 
-        return switch (method.toUpperCase()) {
-            case "GET" -> spec.when().get(endpoint);
-            case "POST" -> spec.when().post(endpoint);
-            case "PUT" -> spec.when().put(endpoint);
-            case "PATCH" -> spec.when().patch(endpoint);
-            case "DELETE" -> spec.when().delete(endpoint);
+        String normalizedMethod = method.toUpperCase();
+
+        return switch (normalizedMethod) {
+            case "GET", "POST", "PUT", "PATCH", "DELETE" -> executeRequest(spec, normalizedMethod, endpoint);
             default -> throw new IllegalArgumentException("Unsupported HTTP method: " + method);
         };
+    }
+
+    private Response executeRequest(RequestSpecification spec, String method, String endpoint) {
+
+        try {
+
+            return spec.when().request(method, endpoint);
+
+        } catch (Exception e) {
+
+            if (!(e instanceof HttpResponseException)) {
+                return rethrow(e);
+            }
+
+            return buildResponse((HttpResponseException) e);
+        }
+    }
+
+    private Response buildResponse(HttpResponseException exception) {
+
+        HttpResponseDecorator response = exception.getResponse();
+        ResponseBuilder builder = new ResponseBuilder()
+                .setStatusCode(response.getStatusLine().getStatusCode())
+                .setStatusLine(response.getStatusLine().toString());
+
+        String contentType = response.getContentType();
+        if (contentType != null) {
+            builder.setContentType(contentType);
+        }
+
+        List<Header> responseHeaders = java.util.Arrays.stream(response.getAllHeaders())
+                .map(header -> new Header(header.getName(), header.getValue()))
+                .toList();
+        builder.setHeaders(new Headers(responseHeaders));
+
+        HttpEntity entity = response.getEntity();
+        if (entity != null) {
+            try {
+                builder.setBody(EntityUtils.toString(entity, StandardCharsets.UTF_8));
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to read error response body", e);
+            }
+        } else {
+            builder.setBody("");
+        }
+
+        return builder.build();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T extends Throwable, R> R rethrow(Throwable throwable) throws T {
+
+        throw (T) throwable;
     }
 }
