@@ -1,0 +1,17 @@
+# Java/Maven
+target/
+*.class
+
+# Cypress/Node
+node_modules/
+dist/
+
+# Reporting/output
+allure-results/
+allure-report/
+
+# macOS
+.DS_Store
+
+# IntelliJ
+.idea/
