@@ -46,18 +46,22 @@ public class ApiSteps {
     @And("user adds header {string} as {string}")
     public void user_adds_header_as(String key, String value) {
 
-        apiClient.addHeader(key, value);
+        String resolvedValue = E2ESteps.resolve(value);
 
-        ConsoleLogger.info("Header Added", key + " = " + value);
+        apiClient.addHeader(key, resolvedValue);
 
-        AllureUtils.attachRequest("Header Added", key + " = " + value);
+        ConsoleLogger.info("Header Added", key + " = " + resolvedValue);
+
+        AllureUtils.attachRequest("Header Added", key + " = " + resolvedValue);
     }
 
     // Deprecated: Use user_sends_request_to instead
     @When("user sends GET request to {string}")
     public void user_sends_get_request_to(String endpoint) {
 
-        context.setResponse(apiClient.get(endpoint));
+        String resolvedEndpoint = E2ESteps.resolve(endpoint);
+
+        context.setResponse(apiClient.get(resolvedEndpoint));
 
         context.setJsonPath(new JsonPath(context.getResponse().asString()));
 
@@ -65,7 +69,7 @@ public class ApiSteps {
 
         RequestLogger.logRequest(
                 "GET Request",
-                endpoint,
+                resolvedEndpoint,
                 apiClient.getHeaders(),
                 context.getResponse()
         );
@@ -75,7 +79,9 @@ public class ApiSteps {
     @When("user sends POST request to {string} with body")
     public void user_sends_post_request_to_with_body(String endpoint, String requestBody) {
 
-        context.setResponse(apiClient.post(endpoint, requestBody));
+        String resolvedEndpoint = E2ESteps.resolve(endpoint);
+
+        context.setResponse(apiClient.post(resolvedEndpoint, requestBody));
 
         context.setJsonPath(
                 new JsonPath(context.getResponse().asString())
@@ -86,7 +92,7 @@ public class ApiSteps {
 
         RequestLogger.logRequest(
                 "POST Request",
-                endpoint,
+                resolvedEndpoint,
                 apiClient.getHeaders(),
                 context.getResponse()
         );
@@ -96,10 +102,12 @@ public class ApiSteps {
     @When("user sends POST request to {string} with json file {string}")
     public void user_sends_post_request_to_with_json_file(String endpoint, String filePath) {
 
+        String resolvedEndpoint = E2ESteps.resolve(endpoint);
+
         context.setRequestBody(JsonUtils.readJson(filePath));
 
         context.setResponse(
-                apiClient.post(endpoint, context.getRequestBody())
+                apiClient.post(resolvedEndpoint, context.getRequestBody())
         );
 
         context.setJsonPath(
@@ -111,7 +119,7 @@ public class ApiSteps {
 
         RequestLogger.logRequest(
                 "POST Request From File",
-                endpoint,
+                resolvedEndpoint,
                 apiClient.getHeaders(),
                 context.getResponse()
         );
@@ -131,12 +139,14 @@ public class ApiSteps {
     @And("user updates request field {string} as {string}")
     public void user_updates_request_field_as(String key, String value) {
 
+        String resolvedValue = E2ESteps.resolve(value);
+
         context.setRequestBody(
-                JsonUtils.updateJsonField(context.getRequestBody(), key, value)
+                JsonUtils.updateJsonField(context.getRequestBody(), key, resolvedValue)
         );
 
         ConsoleLogger.info("Updated Field", key);
-        ConsoleLogger.info("New Value", value);
+        ConsoleLogger.info("New Value", resolvedValue);
 
         AllureUtils.attachRequest("Updated Request Body", context.getRequestBody());
     }
@@ -145,8 +155,10 @@ public class ApiSteps {
     @When("user sends POST request to {string} with loaded body")
     public void user_sends_post_request_to_with_loaded_body(String endpoint) {
 
+        String resolvedEndpoint = E2ESteps.resolve(endpoint);
+
         context.setResponse(
-                apiClient.post(endpoint, context.getRequestBody())
+                apiClient.post(resolvedEndpoint, context.getRequestBody())
         );
 
         context.setJsonPath(
@@ -158,7 +170,7 @@ public class ApiSteps {
 
         RequestLogger.logRequest(
                 "POST Request",
-                endpoint,
+                resolvedEndpoint,
                 apiClient.getHeaders(),
                 context.getResponse()
         );
@@ -298,8 +310,10 @@ public class ApiSteps {
     @When("user sends {string} request to {string}")
     public void user_sends_request_to(String method, String endpoint) {
 
+        String resolvedEndpoint = E2ESteps.resolve(endpoint);
+
         context.setResponse(
-                apiClient.sendRequest(method, endpoint, null)
+                apiClient.sendRequest(method, resolvedEndpoint, null)
         );
 
         context.setJsonPath(
@@ -313,7 +327,7 @@ public class ApiSteps {
 
         RequestLogger.logRequest(
                 method + " Request",
-                endpoint,
+                resolvedEndpoint,
                 apiClient.getHeaders(),
                 context.getResponse()
         );
@@ -322,10 +336,12 @@ public class ApiSteps {
     @When("user sends {string} request to {string} with loaded body")
     public void user_sends_request_to_with_loaded_body(String method, String endpoint) {
 
+        String resolvedEndpoint = E2ESteps.resolve(endpoint);
+
         context.setResponse(
                 apiClient.sendRequest(
                         method,
-                        endpoint,
+                        resolvedEndpoint,
                         context.getRequestBody()
                 )
         );
@@ -346,7 +362,7 @@ public class ApiSteps {
 
         RequestLogger.logRequest(
                 method + " Request",
-                endpoint,
+                resolvedEndpoint,
                 apiClient.getHeaders(),
                 context.getResponse()
         );
