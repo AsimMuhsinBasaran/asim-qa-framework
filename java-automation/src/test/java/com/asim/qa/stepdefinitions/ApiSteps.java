@@ -8,6 +8,8 @@ import io.cucumber.java.en.*;
 import com.asim.qa.context.TestContext;
 import io.restassured.path.json.JsonPath;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -61,6 +63,37 @@ public class ApiSteps {
         ConsoleLogger.info("Header Added", key + " = " + resolvedValue);
 
         AllureUtils.attachRequest("Header Added", key + " = " + resolvedValue);
+    }
+
+    @And("user uses bearer token {string}")
+    public void user_uses_bearer_token(String token) {
+
+        String resolvedToken = context.resolve(token);
+
+        user_adds_header_as("Authorization", "Bearer " + resolvedToken);
+    }
+
+    @And("user uses basic auth with username {string} and password {string}")
+    public void user_uses_basic_auth_with_username_and_password(String username, String password) {
+
+        String resolvedUsername = context.resolve(username);
+        String resolvedPassword = context.resolve(password);
+        String credentials = resolvedUsername + ":" + resolvedPassword;
+        String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
+
+        user_adds_header_as("Authorization", "Basic " + encodedCredentials);
+    }
+
+    @And("user uses api key header {string} as {string}")
+    public void user_uses_api_key_header_as(String key, String value) {
+
+        user_adds_header_as(key, value);
+    }
+
+    @And("user uses api key query param {string} as {string}")
+    public void user_uses_api_key_query_param_as(String key, String value) {
+
+        user_sets_query_param_as(key, value);
     }
 
     @And("user sets path param {string} as {string}")
