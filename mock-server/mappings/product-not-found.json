@@ -1,0 +1,14 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/products/999"
+  },
+  "response": {
+    "status": 404,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "error": "Product not found",
+      "code": "NOT_FOUND"
+    }
+  }
+}

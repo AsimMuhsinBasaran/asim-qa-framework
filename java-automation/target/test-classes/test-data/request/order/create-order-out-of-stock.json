@@ -1,0 +1,13 @@
+{
+  "userId": 1001,
+  "items": [
+    { "productId": 99, "quantity": 1 }
+  ],
+  "shippingAddress": {
+    "street": "123 Test Street",
+    "city": "Istanbul",
+    "country": "TR",
+    "zipCode": "34000"
+  },
+  "paymentMethod": "CREDIT_CARD"
+}

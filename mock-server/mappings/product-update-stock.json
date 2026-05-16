@@ -1,0 +1,19 @@
+{
+  "request": {
+    "method": "PUT",
+    "url": "/products/1/stock",
+    "bodyPatterns": [
+      { "matchesJsonPath": "$.stock" }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "id": 1,
+      "stock": "{{jsonPath request.body '$.stock'}}",
+      "updatedAt": "2025-01-01T12:00:00Z"
+    },
+    "transformers": ["response-template"]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "request": {
+    "method": "PUT",
+    "url": "/orders/502/cancel"
+  },
+  "response": {
+    "status": 409,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "error": "Cannot cancel a delivered order",
+      "code": "CONFLICT",
+      "orderId": 502
+    }
+  }
+}

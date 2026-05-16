@@ -1,0 +1,14 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/products"
+  },
+  "response": {
+    "status": 401,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "error": "Authorization token is required",
+      "code": "UNAUTHORIZED"
+    }
+  }
+}

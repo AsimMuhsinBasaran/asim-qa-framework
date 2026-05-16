@@ -1,0 +1,21 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/auth/login",
+    "bodyPatterns": [
+      { "matchesJsonPath": "$.email" },
+      { "matchesJsonPath": "$.password" }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "userId": 1001,
+      "email": "{{jsonPath request.body '$.email'}}",
+      "token": "mock-jwt-token-xyz123",
+      "expiresIn": 3600
+    },
+    "transformers": ["response-template"]
+  }
+}

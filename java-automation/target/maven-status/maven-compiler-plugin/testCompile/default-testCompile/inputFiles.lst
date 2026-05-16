@@ -1,0 +1,13 @@
+/Users/basaranasim/qa-automation-framework/java-automation/src/test/java/com/asim/qa/api/ApiClient.java
+/Users/basaranasim/qa-automation-framework/java-automation/src/test/java/com/asim/qa/config/ConfigReader.java
+/Users/basaranasim/qa-automation-framework/java-automation/src/test/java/com/asim/qa/context/TestContext.java
+/Users/basaranasim/qa-automation-framework/java-automation/src/test/java/com/asim/qa/hooks/MockServerHooks.java
+/Users/basaranasim/qa-automation-framework/java-automation/src/test/java/com/asim/qa/hooks/TestSuiteHooks.java
+/Users/basaranasim/qa-automation-framework/java-automation/src/test/java/com/asim/qa/runners/ApiTestRunner.java
+/Users/basaranasim/qa-automation-framework/java-automation/src/test/java/com/asim/qa/runners/DevApiTestRunner.java
+/Users/basaranasim/qa-automation-framework/java-automation/src/test/java/com/asim/qa/stepdefinitions/ApiSteps.java
+/Users/basaranasim/qa-automation-framework/java-automation/src/test/java/com/asim/qa/utils/AllureUtils.java
+/Users/basaranasim/qa-automation-framework/java-automation/src/test/java/com/asim/qa/utils/AssertionUtils.java
+/Users/basaranasim/qa-automation-framework/java-automation/src/test/java/com/asim/qa/utils/ConsoleLogger.java
+/Users/basaranasim/qa-automation-framework/java-automation/src/test/java/com/asim/qa/utils/JsonUtils.java
+/Users/basaranasim/qa-automation-framework/java-automation/src/test/java/com/asim/qa/utils/RequestLogger.java

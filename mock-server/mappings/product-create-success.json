@@ -1,0 +1,22 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/products",
+    "bodyPatterns": [
+      { "matchesJsonPath": "$.name" },
+      { "matchesJsonPath": "$.price" }
+    ]
+  },
+  "response": {
+    "status": 201,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "id": 201,
+      "name": "{{jsonPath request.body '$.name'}}",
+      "price": "{{jsonPath request.body '$.price'}}",
+      "stock": "{{jsonPath request.body '$.stock'}}",
+      "category": "{{jsonPath request.body '$.category'}}"
+    },
+    "transformers": ["response-template"]
+  }
+}

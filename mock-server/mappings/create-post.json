@@ -1,0 +1,48 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/posts",
+    "bodyPatterns": [
+      {
+        "matchesJsonPath": "$.title"
+      },
+      {
+        "matchesJsonPath": "$.body"
+      },
+      {
+        "matchesJsonPath": "$.userId"
+      }
+    ]
+  },
+  "response": {
+    "status": 201,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "id": 101,
+      "title": "{{jsonPath request.body '$.title'}}",
+      "body": "{{jsonPath request.body '$.body'}}",
+      "userId": "{{jsonPath request.body '$.userId'}}",
+      "customerName": "{{jsonPath request.body '$.customer.profile.name'}}",
+      "error": null,
+      "items": [
+        {
+          "id": 1,
+          "name": "first item"
+        },
+        {
+          "id": 2,
+          "name": "second item"
+        },
+        {
+          "id": 3,
+          "name": "third item"
+        }
+      ]
+    },
+    "transformers": [
+      "response-template"
+    ]
+  }
+}

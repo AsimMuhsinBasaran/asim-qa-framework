@@ -1,0 +1,17 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/auth/login",
+    "bodyPatterns": [
+      { "matchesJsonPath": "$[?(@.password == 'wrongpassword')]" }
+    ]
+  },
+  "response": {
+    "status": 401,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "error": "Invalid credentials",
+      "code": "UNAUTHORIZED"
+    }
+  }
+}

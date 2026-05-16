@@ -1,0 +1,7 @@
+{
+    "id": 101,
+    "title": "mock title",
+    "body": "test body",
+    "userId": "99",
+    "customerName": "Asim Basaran"
+}

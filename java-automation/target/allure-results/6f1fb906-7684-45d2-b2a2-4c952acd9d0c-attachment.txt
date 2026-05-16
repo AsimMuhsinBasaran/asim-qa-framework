@@ -1,0 +1,3 @@
+Field: orders.status
+Expected Value: PENDING
+Actual Values: [PENDING, DELIVERED]

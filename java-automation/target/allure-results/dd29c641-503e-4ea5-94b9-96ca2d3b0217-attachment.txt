@@ -1,0 +1,2 @@
+Expected : NOT NULL
+Actual   : testuser@example.com

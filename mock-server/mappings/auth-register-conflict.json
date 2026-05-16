@@ -1,0 +1,17 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/auth/register",
+    "bodyPatterns": [
+      { "matchesJsonPath": "$[?(@.email == 'existing@example.com')]" }
+    ]
+  },
+  "response": {
+    "status": 409,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "error": "Email already in use",
+      "code": "CONFLICT"
+    }
+  }
+}

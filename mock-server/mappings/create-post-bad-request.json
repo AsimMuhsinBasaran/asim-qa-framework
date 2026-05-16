@@ -1,0 +1,21 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/posts",
+    "bodyPatterns": [
+      {
+        "matchesJsonPath": "$[?(!@.title)]"
+      }
+    ]
+  },
+  "response": {
+    "status": 400,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "error": "title is required",
+      "code": "VALIDATION_ERROR"
+    }
+  }
+}

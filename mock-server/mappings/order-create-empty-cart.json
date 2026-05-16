@@ -1,0 +1,17 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/orders",
+    "bodyPatterns": [
+      { "matchesJsonPath": "$[?(@.items.size() == 0)]" }
+    ]
+  },
+  "response": {
+    "status": 400,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "error": "Order must contain at least one item",
+      "code": "VALIDATION_ERROR"
+    }
+  }
+}

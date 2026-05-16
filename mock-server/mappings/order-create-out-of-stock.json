@@ -1,0 +1,18 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/orders",
+    "bodyPatterns": [
+      { "matchesJsonPath": "$[?(@.items[0].productId == 99)]" }
+    ]
+  },
+  "response": {
+    "status": 422,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "error": "Product is out of stock",
+      "code": "UNPROCESSABLE_ENTITY",
+      "productId": 99
+    }
+  }
+}

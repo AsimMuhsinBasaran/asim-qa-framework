@@ -1,0 +1,17 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/auth/register",
+    "bodyPatterns": [
+      { "matchesJsonPath": "$[?(!@.email || !@.password)]" }
+    ]
+  },
+  "response": {
+    "status": 400,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "error": "email and password are required",
+      "code": "VALIDATION_ERROR"
+    }
+  }
+}

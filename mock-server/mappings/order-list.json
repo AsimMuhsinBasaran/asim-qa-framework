@@ -1,0 +1,17 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/orders"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "orders": [
+        { "orderId": 501, "status": "PENDING", "total": 129.98, "createdAt": "2025-01-01T10:00:00Z" },
+        { "orderId": 502, "status": "DELIVERED", "total": 34.99, "createdAt": "2024-12-20T08:30:00Z" }
+      ],
+      "total": 2
+    }
+  }
+}

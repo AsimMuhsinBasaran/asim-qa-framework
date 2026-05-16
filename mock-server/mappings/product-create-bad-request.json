@@ -1,0 +1,17 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/products",
+    "bodyPatterns": [
+      { "matchesJsonPath": "$[?(!@.price || @.price == '')]" }
+    ]
+  },
+  "response": {
+    "status": 400,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "error": "price is required and must be a positive number",
+      "code": "VALIDATION_ERROR"
+    }
+  }
+}

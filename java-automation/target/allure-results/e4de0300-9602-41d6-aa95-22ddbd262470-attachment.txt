@@ -1,0 +1,1 @@
+Authorization = Bearer valid-test-token
