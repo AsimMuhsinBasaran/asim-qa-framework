@@ -7,7 +7,7 @@ public class JsonUtils {
 
     public static String readJson(String fileName) {
 
-        String fullPath = "src/test/resources/test-data.request/" + fileName;
+        String fullPath = "src/test/resources/test-data/request/" + fileName;
 
         try {
             return new String(Files.readAllBytes(Paths.get(fullPath)));
