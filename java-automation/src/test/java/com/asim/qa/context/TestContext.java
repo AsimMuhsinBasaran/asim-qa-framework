@@ -4,6 +4,7 @@ import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,9 +37,9 @@ public class TestContext {
             this.method = method;
             this.endpoint = endpoint;
             this.body = body;
-            this.headers = new HashMap<>(headers);
-            this.pathParams = new HashMap<>(pathParams);
-            this.queryParams = new HashMap<>(queryParams);
+            this.headers = new LinkedHashMap<>(headers);
+            this.pathParams = new LinkedHashMap<>(pathParams);
+            this.queryParams = new LinkedHashMap<>(queryParams);
         }
 
         public String getMethod() {
@@ -54,15 +55,15 @@ public class TestContext {
         }
 
         public Map<String, String> getHeaders() {
-            return new HashMap<>(headers);
+            return new LinkedHashMap<>(headers);
         }
 
         public Map<String, String> getPathParams() {
-            return new HashMap<>(pathParams);
+            return new LinkedHashMap<>(pathParams);
         }
 
         public Map<String, String> getQueryParams() {
-            return new HashMap<>(queryParams);
+            return new LinkedHashMap<>(queryParams);
         }
     }
 

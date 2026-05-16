@@ -31,12 +31,12 @@ public class ApiClient {
 
     public Map<String, String> getHeaders() {
 
-        return headers;
+        return new HashMap<>(headers);
     }
 
     public Map<String, String> getHeadersSnapshot() {
 
-        return new HashMap<>(headers);
+        return getHeaders();
     }
 
     public Map<String, String> getPathParamsSnapshot() {
