@@ -27,6 +27,7 @@ public class ApiClient {
     private final Map<String, String> headers = new HashMap<>();
     private final Map<String, String> pathParams = new LinkedHashMap<>();
     private final Map<String, String> queryParams = new LinkedHashMap<>();
+    private String baseUrl;
 
     public Map<String, String> getHeaders() {
 
@@ -56,6 +57,20 @@ public class ApiClient {
     public void addHeader(String key, String value) {
 
         headers.put(key, value);
+    }
+
+    public void setBaseUrl(String baseUrl) {
+
+        if (baseUrl == null || baseUrl.isBlank()) {
+            throw new IllegalArgumentException("Base URL must not be blank.");
+        }
+
+        this.baseUrl = baseUrl;
+    }
+
+    public void clearBaseUrl() {
+
+        baseUrl = null;
     }
 
     public void addPathParam(String key, String value) {
@@ -96,6 +111,7 @@ public class ApiClient {
         int timeoutMs = ConfigReader.getApiTimeoutMs();
 
         return given()
+                .baseUri(requireBaseUrl())
                 .config(config().httpClient(
                         httpClientConfig()
                                 .setParam("http.connection.timeout", timeoutMs)
@@ -103,6 +119,15 @@ public class ApiClient {
                                 .setParam("http.connection-manager.timeout", (long) timeoutMs)
                 ))
                 .headers(requestHeaders);
+    }
+
+    private String requireBaseUrl() {
+
+        if (baseUrl == null || baseUrl.isBlank()) {
+            throw new IllegalStateException("Base URL is not configured. Call 'Given base url is configured' before sending a request.");
+        }
+
+        return baseUrl;
     }
 
     public Response get(String endpoint) {

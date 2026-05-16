@@ -5,7 +5,6 @@ import com.asim.qa.config.ConfigReader;
 import com.asim.qa.utils.*;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.*;
-import io.restassured.RestAssured;
 import com.asim.qa.context.TestContext;
 import io.restassured.path.json.JsonPath;
 
@@ -31,6 +30,7 @@ public class ApiSteps {
 
         apiClient.clearHeaders();
         apiClient.clearParams();
+        apiClient.clearBaseUrl();
         context.setRequestBody(null);
         context.setResponse(null);
         context.setJsonPath(null);
@@ -45,7 +45,7 @@ public class ApiSteps {
 
         baseUrl = ConfigReader.getBaseUrl();
 
-        RestAssured.baseURI = baseUrl;
+        apiClient.setBaseUrl(baseUrl);
 
         ConsoleLogger.section("Base URL");
         ConsoleLogger.info("URL", baseUrl);
