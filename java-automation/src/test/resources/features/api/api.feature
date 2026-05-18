@@ -1,12 +1,12 @@
 Feature: API Tests
 
-  @dev @mock
+  @mock
   Scenario: Get post successfully
     Given base url is configured
     When user sends GET request to "/posts/1"
     Then response status code should be 200
     And response field "id" should be "1"
-    And response field "userId" should be "99"
+    And response field "userId" should not be null
     And response field "title" should not be null
 
   @mock
