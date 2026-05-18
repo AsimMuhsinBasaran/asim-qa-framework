@@ -56,7 +56,7 @@ public class ApiSteps {
     @And("user adds header {string} as {string}")
     public void user_adds_header_as(String key, String value) {
 
-        String resolvedValue = context.resolve(value);
+        String resolvedValue = ScenarioContextUtils.resolveText(context, value);
 
         apiClient.addHeader(key, resolvedValue);
 
@@ -68,7 +68,7 @@ public class ApiSteps {
     @And("user uses bearer token {string}")
     public void user_uses_bearer_token(String token) {
 
-        String resolvedToken = context.resolve(token);
+        String resolvedToken = ScenarioContextUtils.resolveText(context, token);
 
         user_adds_header_as("Authorization", "Bearer " + resolvedToken);
     }
@@ -76,8 +76,8 @@ public class ApiSteps {
     @And("user uses basic auth with username {string} and password {string}")
     public void user_uses_basic_auth_with_username_and_password(String username, String password) {
 
-        String resolvedUsername = context.resolve(username);
-        String resolvedPassword = context.resolve(password);
+        String resolvedUsername = ScenarioContextUtils.resolveText(context, username);
+        String resolvedPassword = ScenarioContextUtils.resolveText(context, password);
         String credentials = resolvedUsername + ":" + resolvedPassword;
         String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
 
@@ -99,7 +99,7 @@ public class ApiSteps {
     @And("user sets path param {string} as {string}")
     public void user_sets_path_param_as(String key, String value) {
 
-        String resolvedValue = context.resolve(value);
+        String resolvedValue = ScenarioContextUtils.resolveText(context, value);
 
         apiClient.addPathParam(key, resolvedValue);
 
@@ -111,7 +111,7 @@ public class ApiSteps {
     @And("user sets query param {string} as {string}")
     public void user_sets_query_param_as(String key, String value) {
 
-        String resolvedValue = context.resolve(value);
+        String resolvedValue = ScenarioContextUtils.resolveText(context, value);
 
         apiClient.addQueryParam(key, resolvedValue);
 
@@ -218,7 +218,7 @@ public class ApiSteps {
     @And("user updates request field {string} as {string}")
     public void user_updates_request_field_as(String key, String value) {
 
-        String resolvedValue = context.resolve(value);
+        String resolvedValue = ScenarioContextUtils.resolveText(context, value);
 
         context.setRequestBody(
                 JsonUtils.updateJsonField(context.getRequestBody(), key, resolvedValue)
@@ -547,7 +547,7 @@ public class ApiSteps {
             String placeholderName = matcher.group(1);
             String replacement = apiClient.hasPathParam(placeholderName)
                     ? matcher.group()
-                    : context.resolve(matcher.group());
+                    : ScenarioContextUtils.resolveText(context, matcher.group());
 
             matcher.appendReplacement(resolvedEndpoint, Matcher.quoteReplacement(replacement));
         }
@@ -565,7 +565,7 @@ public class ApiSteps {
         StringBuffer resolvedBody = new StringBuffer();
 
         while (matcher.find()) {
-            String resolvedValue = context.resolve(matcher.group());
+            String resolvedValue = ScenarioContextUtils.resolveText(context, matcher.group());
             matcher.appendReplacement(resolvedBody, Matcher.quoteReplacement(resolvedValue));
         }
 
