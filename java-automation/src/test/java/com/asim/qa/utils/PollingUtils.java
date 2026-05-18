@@ -5,6 +5,8 @@ import com.asim.qa.context.TestContext;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -87,17 +89,20 @@ public class PollingUtils {
         long deadlineNanos = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeoutSeconds);
         int attempts = 0;
         Object lastActualValue = null;
+        List<String> summaryLines = new ArrayList<>();
 
         while (true) {
             attempts++;
             updateContextWithPollAttempt(context, apiClient, lastRequest);
             lastActualValue = actualValueSupplier.get();
+            summaryLines.add(formatAttemptSummary(attempts, conditionDescription, lastActualValue));
 
             ConsoleLogger.info("Poll Attempt", attempts);
             ConsoleLogger.info("Poll Condition", conditionDescription);
             ConsoleLogger.info("Poll Actual", lastActualValue);
 
             if (Boolean.TRUE.equals(condition.get())) {
+                AllureUtils.attachPollingSummary(buildPollingSummary(conditionDescription, summaryLines, true, attempts, lastActualValue));
                 ConsoleLogger.pass("Polling condition sağlandı");
                 return;
             }
@@ -105,6 +110,7 @@ public class PollingUtils {
             long remainingNanos = deadlineNanos - System.nanoTime();
 
             if (remainingNanos <= 0) {
+                AllureUtils.attachPollingSummary(buildPollingSummary(conditionDescription, summaryLines, false, attempts, lastActualValue));
                 throw new AssertionError(
                         "Polling timed out after " + timeoutSeconds + " seconds and " + attempts +
                                 " attempts. Condition: " + conditionDescription +
@@ -115,6 +121,43 @@ public class PollingUtils {
 
             sleep(Math.min(TimeUnit.SECONDS.toNanos(intervalSeconds), remainingNanos));
         }
+    }
+
+    private static String buildPollingSummary(String conditionDescription,
+                                              List<String> summaryLines,
+                                              boolean success,
+                                              int attempts,
+                                              Object lastActualValue) {
+
+        StringBuilder builder = new StringBuilder();
+        builder.append("Condition: ").append(conditionDescription).append(System.lineSeparator());
+        builder.append("Result: ").append(success ? "SUCCESS" : "TIMEOUT").append(System.lineSeparator());
+        builder.append("Attempts: ").append(attempts).append(System.lineSeparator());
+        if (lastActualValue != null) {
+            builder.append("LastActualValue: ").append(lastActualValue).append(System.lineSeparator());
+        }
+        builder.append(System.lineSeparator());
+        builder.append("Attempt Details:").append(System.lineSeparator());
+
+        if (summaryLines.isEmpty()) {
+            builder.append("[no attempts]").append(System.lineSeparator());
+            return builder.toString();
+        }
+
+        for (String summaryLine : summaryLines) {
+            builder.append(summaryLine).append(System.lineSeparator());
+        }
+
+        return builder.toString();
+    }
+
+    private static String formatAttemptSummary(int attemptNumber,
+                                               String conditionDescription,
+                                               Object actualValue) {
+
+        return "Attempt " + attemptNumber +
+                " | Condition: " + conditionDescription +
+                " | Actual: " + actualValue;
     }
 
     private static TestContext.LastRequest requireGetLastRequest(TestContext context) {
