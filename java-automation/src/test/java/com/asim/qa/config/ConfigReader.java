@@ -55,6 +55,10 @@ public class ConfigReader {
 
     }
 
+    public static String getActiveEnv() {
+        return resolveActiveEnv();
+    }
+
     private static String resolveActiveEnv() {
 
         String env = System.getProperty("env");
