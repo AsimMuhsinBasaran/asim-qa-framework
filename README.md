@@ -75,7 +75,23 @@ Run the Java API automation suite:
 mvn test
 ```
 
-The default Maven test run executes `ApiTestRunner`, which targets mock E2E scenarios tagged with `@mock and @e2e`. WireMock is started and stopped by Cucumber hooks during the run.
+The default Maven test run executes `ApiTestRunner`, which targets the mock suite. WireMock is started and stopped by Cucumber hooks during the run.
+
+### Run Matrix
+
+- `env` selects the active environment configuration.
+- `cucumber.filter.tags` selects the Cucumber scenario scope.
+- `runner.class` selects which runner class Surefire includes.
+- The default behavior is the mock suite.
+- The dev suite is intended for separate smoke scenarios.
+
+```bash
+mvn test
+mvn test -Denv=mock
+mvn test -Denv=mock -Dcucumber.filter.tags="@mock and @e2e"
+mvn test -Denv=dev -Drunner.class=DevApiTestRunner -Dcucumber.filter.tags="@dev"
+mvn test -Drunner.class=ApiTestRunner
+```
 
 ## Example Gherkin Scenarios
 
