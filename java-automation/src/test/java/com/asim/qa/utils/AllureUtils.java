@@ -13,17 +13,17 @@ public class AllureUtils {
 
     public static void attachRequest(String title, String body) {
 
-        Allure.addAttachment(title, body == null ? "[no body]" : SensitiveDataMasker.mask(body));
+        Allure.addAttachment(titleWithRequestId(title), body == null ? "[no body]" : SensitiveDataMasker.mask(body));
     }
 
     public static void attachResponse(String title, String body) {
 
-        Allure.addAttachment(title, body == null ? "[no body]" : SensitiveDataMasker.mask(body));
+        Allure.addAttachment(titleWithRequestId(title), body == null ? "[no body]" : SensitiveDataMasker.mask(body));
     }
 
     public static void attachPollingSummary(String body) {
 
-        Allure.addAttachment("Polling Summary", body == null ? "[no summary]" : SensitiveDataMasker.mask(body));
+        Allure.addAttachment(titleWithRequestId("Polling Summary"), body == null ? "[no summary]" : SensitiveDataMasker.mask(body));
     }
 
     public static void writeEnvironmentProperties(Path allureResultsDir) {
@@ -47,5 +47,16 @@ public class AllureUtils {
         } catch (IOException e) {
             throw new RuntimeException("Allure environment.properties yazılamadı: " + environmentFile, e);
         }
+    }
+
+    private static String titleWithRequestId(String title) {
+
+        String requestId = RequestCorrelationContext.getRequestId();
+
+        if (requestId == null || requestId.isBlank()) {
+            return title;
+        }
+
+        return "[requestId=" + requestId + "] " + title;
     }
 }

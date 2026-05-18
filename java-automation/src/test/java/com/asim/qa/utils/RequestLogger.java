@@ -14,6 +14,7 @@ public class RequestLogger {
     ) {
 
         ConsoleLogger.section(title);
+        ConsoleLogger.info("Request ID", RequestCorrelationContext.getRequestId() == null ? "n/a" : RequestCorrelationContext.getRequestId());
 
         ConsoleLogger.info("Endpoint", endpoint);
 

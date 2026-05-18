@@ -124,78 +124,84 @@ public class ApiSteps {
     @When("user sends GET request to {string}")
     public void user_sends_get_request_to(String endpoint) {
 
-        String resolvedEndpoint = resolveEndpoint(endpoint);
+        executeWithRequestCorrelation(() -> {
+            String resolvedEndpoint = resolveEndpoint(endpoint);
 
-        storeLastRequest("GET", resolvedEndpoint, null);
+            storeLastRequest("GET", resolvedEndpoint, null);
 
-        context.setResponse(apiClient.get(resolvedEndpoint));
+            context.setResponse(apiClient.get(resolvedEndpoint));
 
-        context.setJsonPath(new JsonPath(context.getResponse().asString()));
+            context.setJsonPath(new JsonPath(context.getResponse().asString()));
 
-        AllureUtils.attachResponse("GET Response Body", context.getResponse().asPrettyString());
+            AllureUtils.attachResponse("GET Response Body", context.getResponse().asPrettyString());
 
-        RequestLogger.logRequest(
-                "GET Request",
-                resolvedEndpoint,
-                apiClient.getHeaders(),
-                context.getResponse()
-        );
+            RequestLogger.logRequest(
+                    "GET Request",
+                    resolvedEndpoint,
+                    apiClient.getHeaders(),
+                    context.getResponse()
+            );
+        });
     }
 
     // Deprecated: Use user_sends_request_to instead
     @When("user sends POST request to {string} with body")
     public void user_sends_post_request_to_with_body(String endpoint, String requestBody) {
 
-        String resolvedEndpoint = resolveEndpoint(endpoint);
-        String resolvedRequestBody = resolveRequestBody(requestBody);
+        executeWithRequestCorrelation(() -> {
+            String resolvedEndpoint = resolveEndpoint(endpoint);
+            String resolvedRequestBody = resolveRequestBody(requestBody);
 
-        storeLastRequest("POST", resolvedEndpoint, resolvedRequestBody);
+            storeLastRequest("POST", resolvedEndpoint, resolvedRequestBody);
 
-        context.setResponse(apiClient.post(resolvedEndpoint, resolvedRequestBody));
+            context.setResponse(apiClient.post(resolvedEndpoint, resolvedRequestBody));
 
-        context.setJsonPath(
-                new JsonPath(context.getResponse().asString())
-        );
+            context.setJsonPath(
+                    new JsonPath(context.getResponse().asString())
+            );
 
-        AllureUtils.attachRequest("POST Request Body", resolvedRequestBody);
-        AllureUtils.attachResponse("POST Response Body", context.getResponse().asPrettyString());
+            AllureUtils.attachRequest("POST Request Body", resolvedRequestBody);
+            AllureUtils.attachResponse("POST Response Body", context.getResponse().asPrettyString());
 
-        RequestLogger.logRequest(
-                "POST Request",
-                resolvedEndpoint,
-                apiClient.getHeaders(),
-                context.getResponse()
-        );
+            RequestLogger.logRequest(
+                    "POST Request",
+                    resolvedEndpoint,
+                    apiClient.getHeaders(),
+                    context.getResponse()
+            );
+        });
     }
 
     // Deprecated: Use user_sends_request_to instead
     @When("user sends POST request to {string} with json file {string}")
     public void user_sends_post_request_to_with_json_file(String endpoint, String filePath) {
 
-        String resolvedEndpoint = resolveEndpoint(endpoint);
+        executeWithRequestCorrelation(() -> {
+            String resolvedEndpoint = resolveEndpoint(endpoint);
 
-        context.setRequestBody(JsonUtils.readJson(filePath));
-        String resolvedRequestBody = resolveRequestBody(context.getRequestBody());
+            context.setRequestBody(JsonUtils.readJson(filePath));
+            String resolvedRequestBody = resolveRequestBody(context.getRequestBody());
 
-        storeLastRequest("POST", resolvedEndpoint, resolvedRequestBody);
+            storeLastRequest("POST", resolvedEndpoint, resolvedRequestBody);
 
-        context.setResponse(
-                apiClient.post(resolvedEndpoint, resolvedRequestBody)
-        );
+            context.setResponse(
+                    apiClient.post(resolvedEndpoint, resolvedRequestBody)
+            );
 
-        context.setJsonPath(
-                new JsonPath(context.getResponse().asString())
-        );
+            context.setJsonPath(
+                    new JsonPath(context.getResponse().asString())
+            );
 
-        AllureUtils.attachRequest("POST Request Body", resolvedRequestBody);
-        AllureUtils.attachResponse("POST Response Body", context.getResponse().asPrettyString());
+            AllureUtils.attachRequest("POST Request Body", resolvedRequestBody);
+            AllureUtils.attachResponse("POST Response Body", context.getResponse().asPrettyString());
 
-        RequestLogger.logRequest(
-                "POST Request From File",
-                resolvedEndpoint,
-                apiClient.getHeaders(),
-                context.getResponse()
-        );
+            RequestLogger.logRequest(
+                    "POST Request From File",
+                    resolvedEndpoint,
+                    apiClient.getHeaders(),
+                    context.getResponse()
+            );
+        });
     }
 
     @When("user loads json file {string}")
@@ -228,28 +234,30 @@ public class ApiSteps {
     @When("user sends POST request to {string} with loaded body")
     public void user_sends_post_request_to_with_loaded_body(String endpoint) {
 
-        String resolvedEndpoint = resolveEndpoint(endpoint);
-        String resolvedRequestBody = resolveRequestBody(context.getRequestBody());
+        executeWithRequestCorrelation(() -> {
+            String resolvedEndpoint = resolveEndpoint(endpoint);
+            String resolvedRequestBody = resolveRequestBody(context.getRequestBody());
 
-        storeLastRequest("POST", resolvedEndpoint, resolvedRequestBody);
+            storeLastRequest("POST", resolvedEndpoint, resolvedRequestBody);
 
-        context.setResponse(
-                apiClient.post(resolvedEndpoint, resolvedRequestBody)
-        );
+            context.setResponse(
+                    apiClient.post(resolvedEndpoint, resolvedRequestBody)
+            );
 
-        context.setJsonPath(
-                new JsonPath(context.getResponse().asString())
-        );
+            context.setJsonPath(
+                    new JsonPath(context.getResponse().asString())
+            );
 
-        AllureUtils.attachRequest("Final Request Body", resolvedRequestBody);
-        AllureUtils.attachResponse("POST Response Body", context.getResponse().asPrettyString());
+            AllureUtils.attachRequest("Final Request Body", resolvedRequestBody);
+            AllureUtils.attachResponse("POST Response Body", context.getResponse().asPrettyString());
 
-        RequestLogger.logRequest(
-                "POST Request",
-                resolvedEndpoint,
-                apiClient.getHeaders(),
-                context.getResponse()
-        );
+            RequestLogger.logRequest(
+                    "POST Request",
+                    resolvedEndpoint,
+                    apiClient.getHeaders(),
+                    context.getResponse()
+            );
+        });
     }
 
     @Then("response status code should be {int}")
@@ -386,67 +394,71 @@ public class ApiSteps {
     @When("user sends {string} request to {string}")
     public void user_sends_request_to(String method, String endpoint) {
 
-        String resolvedEndpoint = resolveEndpoint(endpoint);
+        executeWithRequestCorrelation(() -> {
+            String resolvedEndpoint = resolveEndpoint(endpoint);
 
-        storeLastRequest(method, resolvedEndpoint, null);
+            storeLastRequest(method, resolvedEndpoint, null);
 
-        context.setResponse(
-                apiClient.sendRequest(method, resolvedEndpoint, null)
-        );
+            context.setResponse(
+                    apiClient.sendRequest(method, resolvedEndpoint, null)
+            );
 
-        context.setJsonPath(
-                new JsonPath(context.getResponse().asString())
-        );
+            context.setJsonPath(
+                    new JsonPath(context.getResponse().asString())
+            );
 
-        AllureUtils.attachResponse(
-                method + " Response Body",
-                context.getResponse().asPrettyString()
-        );
+            AllureUtils.attachResponse(
+                    method + " Response Body",
+                    context.getResponse().asPrettyString()
+            );
 
-        RequestLogger.logRequest(
-                method + " Request",
-                resolvedEndpoint,
-                apiClient.getHeaders(),
-                context.getResponse()
-        );
+            RequestLogger.logRequest(
+                    method + " Request",
+                    resolvedEndpoint,
+                    apiClient.getHeaders(),
+                    context.getResponse()
+            );
+        });
     }
 
     @When("user sends {string} request to {string} with loaded body")
     public void user_sends_request_to_with_loaded_body(String method, String endpoint) {
 
-        String resolvedEndpoint = resolveEndpoint(endpoint);
-        String resolvedRequestBody = resolveRequestBody(context.getRequestBody());
+        executeWithRequestCorrelation(() -> {
+            String resolvedEndpoint = resolveEndpoint(endpoint);
+            String resolvedRequestBody = resolveRequestBody(context.getRequestBody());
 
-        storeLastRequest(method, resolvedEndpoint, resolvedRequestBody);
+            storeLastRequest(method, resolvedEndpoint, resolvedRequestBody);
 
-        context.setResponse(
-                apiClient.sendRequest(
-                        method,
-                        resolvedEndpoint,
-                        resolvedRequestBody
-                )
-        );
+            context.setResponse(
+                    apiClient.sendRequest(
+                            method,
+                            resolvedEndpoint,
+                            resolvedRequestBody
+                    )
+            );
 
-        context.setJsonPath(
-                new JsonPath(context.getResponse().asString())
-        );
+            context.setJsonPath(
+                    new JsonPath(context.getResponse().asString())
+            );
 
-        AllureUtils.attachRequest(
-                method + " Request Body",
-                resolvedRequestBody
-        );
+            AllureUtils.attachRequest(
+                    method + " Request Body",
+                    resolvedRequestBody
+            );
 
-        AllureUtils.attachResponse(
-                method + " Response Body",
-                context.getResponse().asPrettyString()
-        );
+            AllureUtils.attachResponse(
+                    method + " Response Body",
+                    context.getResponse().asPrettyString()
+            );
 
-        RequestLogger.logRequest(
-                method + " Request",
-                resolvedEndpoint,
-                apiClient.getHeaders(),
-                context.getResponse()
-        );
+            RequestLogger.logRequest(
+                    method + " Request",
+                    resolvedEndpoint,
+                    apiClient.getHeaders(),
+                    context.getResponse()
+            );
+        });
     }
 
     @And("^user polls last request until response status code should be (\\d+) within (\\d+) seconds every (\\d+) seconds?$")
@@ -511,6 +523,17 @@ public class ApiSteps {
                         apiClient.getQueryParamsSnapshot()
                 )
         );
+    }
+
+    private void executeWithRequestCorrelation(Runnable action) {
+
+        RequestCorrelationContext.startRequest();
+
+        try {
+            action.run();
+        } finally {
+            RequestCorrelationContext.clear();
+        }
     }
 
     private String resolveEndpoint(String endpoint) {

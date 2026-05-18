@@ -92,11 +92,22 @@ public class ConsoleLogger {
         Thread currentThread = Thread.currentThread();
         String threadName = currentThread.getName();
         String scenarioName = SCENARIO_NAME.get();
+        String requestId = RequestCorrelationContext.getRequestId();
 
         if (scenarioName == null || scenarioName.isBlank()) {
             scenarioName = "unknown";
         }
 
-        return "[thread=" + threadName + "][scenario=" + scenarioName + "] ";
+        StringBuilder builder = new StringBuilder();
+        builder.append("[thread=").append(threadName).append("]");
+        builder.append("[scenario=").append(scenarioName).append("]");
+
+        if (requestId != null && !requestId.isBlank()) {
+            builder.append("[requestId=").append(requestId).append("]");
+        }
+
+        builder.append(" ");
+
+        return builder.toString();
     }
 }
