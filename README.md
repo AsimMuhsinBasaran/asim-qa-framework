@@ -1,5 +1,7 @@
 # Asim QA Framework
 
+[![Java Maven Tests](https://github.com/asimmuhsinbasaran/asim-qa-framework/actions/workflows/java-maven-tests.yml/badge.svg?branch=main)](https://github.com/asimmuhsinbasaran/asim-qa-framework/actions/workflows/java-maven-tests.yml) [![Live Allure Report](https://img.shields.io/badge/Live%20Allure%20Report-Open%20Report-2ea44f?logo=githubpages&logoColor=white)](https://asimmuhsinbasaran.github.io/asim-qa-framework/)
+
 A Java-based QA automation framework focused on API testing with Cucumber BDD, RestAssured, TestNG, WireMock, and Allure reporting. The current test suite is built around mock-backed API scenarios, dynamic request construction, response validation, polling, retry handling, sensitive data masking, and scenario-aware console logs for parallel execution.
 
 ## Tech Stack
