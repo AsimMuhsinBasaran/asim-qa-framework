@@ -107,6 +107,10 @@ public class TestContext {
         return scenarioVariables.get(key);
     }
 
+    public Map<String, String> getScenarioVariablesSnapshot() {
+        return new LinkedHashMap<>(scenarioVariables);
+    }
+
     public String requireScenarioVariable(String key) {
         String value = scenarioVariables.get(key);
 

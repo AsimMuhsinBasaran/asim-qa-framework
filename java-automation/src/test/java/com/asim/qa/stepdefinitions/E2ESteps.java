@@ -5,8 +5,11 @@ import com.asim.qa.utils.AllureUtils;
 import com.asim.qa.utils.AssertionUtils;
 import com.asim.qa.utils.ConsoleLogger;
 import com.asim.qa.utils.JsonUtils;
+import com.asim.qa.utils.SensitiveDataMasker;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
+
+import java.util.Map;
 
 /**
  * E2ESteps — Extends the existing ApiSteps with scenario-level state sharing.
@@ -101,12 +104,13 @@ public class E2ESteps {
 
     /**
      * Updates a request JSON field; resolves {variable} placeholders automatically.
-     *
      * Gherkin: And user updates request field "userId" as "{userId}"
-     *
-     * Overrides the same step in ApiSteps — Cucumber picks the first registered
-     * implementation; if you keep both classes loaded, prefer to remove the one
-     * in ApiSteps and route all field updates through here.
+     *  * Updates a request JSON field after resolving scenario variables.
+     *  * Example:
+     *    And user updates request field "userId" as "{userId}"
+     *   Variable placeholders are resolved through TestContext before the request
+     *  body is updated.
+
      */
     @And("user updates request field {string} with saved value {string}")
     public void user_updates_request_field_with_saved_value(String fieldKey, String variableName) {
@@ -119,5 +123,28 @@ public class E2ESteps {
 
         ConsoleLogger.info("Updated Field (from context)", fieldKey + " = " + resolvedValue);
         AllureUtils.attachRequest("Updated Request Body", context.getRequestBody());
+    }
+
+    @And("user prints saved scenario variables")
+    public void user_prints_saved_scenario_variables() {
+
+        Map<String, String> scenarioVariables = context.getScenarioVariablesSnapshot();
+
+        if (scenarioVariables.isEmpty()) {
+            String message = "No scenario variables saved.";
+            ConsoleLogger.info("Scenario Variables", message);
+            AllureUtils.attachRequest("Scenario Variables", message);
+            return;
+        }
+
+        StringBuilder output = new StringBuilder();
+        scenarioVariables.forEach((key, value) -> {
+            String maskedValue = SensitiveDataMasker.mask(key, value);
+            output.append(key).append("=").append(maskedValue).append(System.lineSeparator());
+        });
+
+        String maskedOutput = output.toString().trim();
+        ConsoleLogger.info("Scenario Variables", maskedOutput);
+        AllureUtils.attachRequest("Scenario Variables", maskedOutput);
     }
 }

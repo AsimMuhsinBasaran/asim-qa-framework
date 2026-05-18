@@ -21,6 +21,11 @@ public class AllureUtils {
         Allure.addAttachment(title, body == null ? "[no body]" : SensitiveDataMasker.mask(body));
     }
 
+    public static void attachPollingSummary(String body) {
+
+        Allure.addAttachment("Polling Summary", body == null ? "[no summary]" : SensitiveDataMasker.mask(body));
+    }
+
     public static void writeEnvironmentProperties(Path allureResultsDir) {
 
         List<String> lines = new ArrayList<>();
