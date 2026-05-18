@@ -5,8 +5,11 @@ import com.asim.qa.utils.AllureUtils;
 import com.asim.qa.utils.AssertionUtils;
 import com.asim.qa.utils.ConsoleLogger;
 import com.asim.qa.utils.JsonUtils;
+import com.asim.qa.utils.SensitiveDataMasker;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
+
+import java.util.Map;
 
 /**
  * E2ESteps — Extends the existing ApiSteps with scenario-level state sharing.
@@ -119,5 +122,28 @@ public class E2ESteps {
 
         ConsoleLogger.info("Updated Field (from context)", fieldKey + " = " + resolvedValue);
         AllureUtils.attachRequest("Updated Request Body", context.getRequestBody());
+    }
+
+    @And("user prints saved scenario variables")
+    public void user_prints_saved_scenario_variables() {
+
+        Map<String, String> scenarioVariables = context.getScenarioVariablesSnapshot();
+
+        if (scenarioVariables.isEmpty()) {
+            String message = "No scenario variables saved.";
+            ConsoleLogger.info("Scenario Variables", message);
+            AllureUtils.attachRequest("Scenario Variables", message);
+            return;
+        }
+
+        StringBuilder output = new StringBuilder();
+        scenarioVariables.forEach((key, value) -> {
+            String maskedValue = SensitiveDataMasker.mask(key, value);
+            output.append(key).append("=").append(maskedValue).append(System.lineSeparator());
+        });
+
+        String maskedOutput = output.toString().trim();
+        ConsoleLogger.info("Scenario Variables", maskedOutput);
+        AllureUtils.attachRequest("Scenario Variables", maskedOutput);
     }
 }
