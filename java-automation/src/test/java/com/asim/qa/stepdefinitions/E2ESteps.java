@@ -104,12 +104,13 @@ public class E2ESteps {
 
     /**
      * Updates a request JSON field; resolves {variable} placeholders automatically.
-     *
      * Gherkin: And user updates request field "userId" as "{userId}"
-     *
-     * Overrides the same step in ApiSteps — Cucumber picks the first registered
-     * implementation; if you keep both classes loaded, prefer to remove the one
-     * in ApiSteps and route all field updates through here.
+     *  * Updates a request JSON field after resolving scenario variables.
+     *  * Example:
+     *    And user updates request field "userId" as "{userId}"
+     *   Variable placeholders are resolved through TestContext before the request
+     *  body is updated.
+
      */
     @And("user updates request field {string} with saved value {string}")
     public void user_updates_request_field_with_saved_value(String fieldKey, String variableName) {
