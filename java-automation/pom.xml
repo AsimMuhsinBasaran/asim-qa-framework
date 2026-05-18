@@ -121,6 +121,7 @@
                         <include>**/RequestBodyResolverTest.java</include>
                         <include>**/RetryClassifierTest.java</include>
                         <include>**/RetryPolicyTest.java</include>
+                        <include>**/RuntimeContextWriterTest.java</include>
                     </includes>
                     <forkCount>1</forkCount>
                     <reuseForks>true</reuseForks>

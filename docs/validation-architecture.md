@@ -60,6 +60,8 @@ Examples:
 
 Sensitive secrets must not be written to the bridge by default.
 
+Runtime bridge artifacts should be scenario-based and allowlist-driven. The first phase should not export the full scenario context, and it should not require Cypress to exist in the repository yet.
+
 ## Reporting Strategy
 
 The first phase keeps reporting separate by layer:
