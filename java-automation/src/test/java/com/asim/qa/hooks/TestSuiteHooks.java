@@ -1,5 +1,6 @@
 package com.asim.qa.hooks;
 
+import com.asim.qa.utils.AllureUtils;
 import io.cucumber.java.BeforeAll;
 
 import java.io.IOException;
@@ -28,6 +29,7 @@ public class TestSuiteHooks {
             }
 
             Files.createDirectories(allurePath);
+            AllureUtils.writeEnvironmentProperties(allurePath);
 
             System.out.println("🧹 Allure results cleaned before test run");
 
