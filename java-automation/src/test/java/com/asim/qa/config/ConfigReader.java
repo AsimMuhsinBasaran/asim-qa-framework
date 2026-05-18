@@ -88,4 +88,19 @@ public class ConfigReader {
             throw new RuntimeException("api.timeout.ms geçerli bir sayı olmalı: " + timeout, e);
         }
     }
+
+    public static int getMockServerPort() {
+
+        String portValue = get("mock.server.port");
+
+        if (portValue == null || portValue.isBlank()) {
+            return 9090;
+        }
+
+        try {
+            return Integer.parseInt(portValue.trim());
+        } catch (NumberFormatException e) {
+            throw new RuntimeException("mock.server.port geçerli bir sayı olmalı: " + portValue, e);
+        }
+    }
 }
