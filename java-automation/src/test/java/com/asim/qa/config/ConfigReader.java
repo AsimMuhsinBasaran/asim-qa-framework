@@ -2,6 +2,7 @@ package com.asim.qa.config;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.Properties;
 
 public class ConfigReader {
@@ -10,19 +11,30 @@ public class ConfigReader {
 
     static {
 
+        loadProperties("config.properties", true);
+        loadProperties("config/env/" + resolveActiveEnv() + ".properties", false);
+
+    }
+
+    private static void loadProperties(String resourcePath, boolean required) {
+
         try (InputStream input =
                      ConfigReader.class
                              .getClassLoader()
-                             .getResourceAsStream("config.properties")) {
+                             .getResourceAsStream(resourcePath)) {
 
             if (input == null) {
-                throw new RuntimeException("config.properties bulunamadı!");
+                if (required) {
+                    throw new RuntimeException(resourcePath + " bulunamadı!");
+                }
+
+                throw new RuntimeException("Environment config bulunamadı: " + resourcePath);
             }
 
             properties.load(input);
 
         } catch (IOException e) {
-            throw new RuntimeException("Config dosyası yüklenemedi!", e);
+            throw new UncheckedIOException("Config dosyası yüklenemedi: " + resourcePath, e);
         }
     }
 
@@ -32,8 +44,7 @@ public class ConfigReader {
 
     public static String getBaseUrl() {
 
-        String env = resolveActiveEnv();
-        String baseUrlKey = "base.url." + env;
+        String baseUrlKey = "base.url";
         String baseUrl = get(baseUrlKey);
 
         if (baseUrl == null || baseUrl.isBlank()) {
