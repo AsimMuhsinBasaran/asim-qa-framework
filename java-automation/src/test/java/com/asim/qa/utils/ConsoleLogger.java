@@ -14,6 +14,11 @@ public class ConsoleLogger {
         SCENARIO_NAME.remove();
     }
 
+    public static String getScenarioName() {
+
+        return SCENARIO_NAME.get();
+    }
+
     public static void section(String title) {
 
         println("");
@@ -82,6 +87,11 @@ public class ConsoleLogger {
         }
     }
 
+    public static void block(String block) {
+
+        println(block == null ? "" : block);
+    }
+
     private static void println(String message) {
 
         System.out.println(prefix() + message);
@@ -92,11 +102,22 @@ public class ConsoleLogger {
         Thread currentThread = Thread.currentThread();
         String threadName = currentThread.getName();
         String scenarioName = SCENARIO_NAME.get();
+        String requestId = RequestCorrelationContext.getRequestId();
 
         if (scenarioName == null || scenarioName.isBlank()) {
             scenarioName = "unknown";
         }
 
-        return "[thread=" + threadName + "][scenario=" + scenarioName + "] ";
+        StringBuilder builder = new StringBuilder();
+        builder.append("[thread=").append(threadName).append("]");
+        builder.append("[scenario=").append(scenarioName).append("]");
+
+        if (requestId != null && !requestId.isBlank()) {
+            builder.append("[requestId=").append(requestId).append("]");
+        }
+
+        builder.append(" ");
+
+        return builder.toString();
     }
 }

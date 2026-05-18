@@ -5,6 +5,7 @@ import com.asim.qa.utils.AllureUtils;
 import com.asim.qa.utils.AssertionUtils;
 import com.asim.qa.utils.ConsoleLogger;
 import com.asim.qa.utils.JsonUtils;
+import com.asim.qa.utils.ScenarioContextUtils;
 import com.asim.qa.utils.SensitiveDataMasker;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
@@ -53,14 +54,7 @@ public class E2ESteps {
     @And("user saves response field {string} as {string}")
     public void user_saves_response_field_as(String fieldKey, String variableName) {
 
-        Object value = context.getJsonPath().get(fieldKey);
-
-        AssertionUtils.assertFieldNotNull(fieldKey, value);
-
-        context.saveScenarioVariable(variableName, String.valueOf(value));
-
-        ConsoleLogger.info("Saved to context", variableName + " = " + value);
-        AllureUtils.attachRequest("Context Save", variableName + " = " + value);
+        ScenarioContextUtils.saveResponseFieldAsVariable(context, fieldKey, variableName);
     }
 
     // ────────────────────────────────────────────────────────────────────────────
@@ -115,7 +109,7 @@ public class E2ESteps {
     @And("user updates request field {string} with saved value {string}")
     public void user_updates_request_field_with_saved_value(String fieldKey, String variableName) {
 
-        String resolvedValue = context.requireScenarioVariable(variableName);
+        String resolvedValue = ScenarioContextUtils.requireVariable(context, variableName);
 
         context.setRequestBody(
                 JsonUtils.updateJsonField(context.getRequestBody(), fieldKey, resolvedValue)

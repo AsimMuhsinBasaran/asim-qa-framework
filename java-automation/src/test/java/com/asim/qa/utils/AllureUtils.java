@@ -13,17 +13,17 @@ public class AllureUtils {
 
     public static void attachRequest(String title, String body) {
 
-        Allure.addAttachment(title, body == null ? "[no body]" : SensitiveDataMasker.mask(body));
+        Allure.addAttachment(titleWithContext(title), body == null ? "[no body]" : SensitiveDataMasker.mask(body));
     }
 
     public static void attachResponse(String title, String body) {
 
-        Allure.addAttachment(title, body == null ? "[no body]" : SensitiveDataMasker.mask(body));
+        Allure.addAttachment(titleWithContext(title), body == null ? "[no body]" : SensitiveDataMasker.mask(body));
     }
 
     public static void attachPollingSummary(String body) {
 
-        Allure.addAttachment("Polling Summary", body == null ? "[no summary]" : SensitiveDataMasker.mask(body));
+        Allure.addAttachment(titleWithContext("Polling Summary"), body == null ? "[no summary]" : SensitiveDataMasker.mask(body));
     }
 
     public static void writeEnvironmentProperties(Path allureResultsDir) {
@@ -47,5 +47,31 @@ public class AllureUtils {
         } catch (IOException e) {
             throw new RuntimeException("Allure environment.properties yazılamadı: " + environmentFile, e);
         }
+    }
+
+    private static String titleWithContext(String title) {
+
+        StringBuilder builder = new StringBuilder();
+        builder.append("[thread=").append(Thread.currentThread().getName()).append("]");
+        builder.append("[scenario=").append(resolveScenarioName()).append("]");
+
+        String requestId = RequestCorrelationContext.getRequestId();
+        if (requestId != null && !requestId.isBlank()) {
+            builder.append("[requestId=").append(requestId).append("]");
+        }
+
+        builder.append(" ").append(title);
+        return builder.toString();
+    }
+
+    private static String resolveScenarioName() {
+
+        String scenarioName = ConsoleLogger.getScenarioName();
+
+        if (scenarioName == null || scenarioName.isBlank()) {
+            return "unknown";
+        }
+
+        return scenarioName;
     }
 }

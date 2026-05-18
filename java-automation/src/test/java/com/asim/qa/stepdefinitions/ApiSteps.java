@@ -8,16 +8,9 @@ import io.cucumber.java.en.*;
 import com.asim.qa.context.TestContext;
 import io.restassured.path.json.JsonPath;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class ApiSteps {
-
-    private static final Pattern REQUEST_BODY_PLACEHOLDER_PATTERN = Pattern.compile("\\{([A-Za-z0-9_.-]+)}");
-    private static final Pattern ENDPOINT_PLACEHOLDER_PATTERN = Pattern.compile("\\{([^{}]+)}");
 
     String baseUrl;
     private final TestContext context;
@@ -31,6 +24,7 @@ public class ApiSteps {
     public void reset_request_state() {
 
         apiClient.clearHeaders();
+        apiClient.clearAuth();
         apiClient.clearParams();
         apiClient.clearBaseUrl();
         context.setRequestBody(null);
@@ -56,7 +50,12 @@ public class ApiSteps {
     @And("user adds header {string} as {string}")
     public void user_adds_header_as(String key, String value) {
 
-        String resolvedValue = context.resolve(value);
+        String resolvedValue = ScenarioContextUtils.resolveText(context, value);
+
+        if ("Authorization".equalsIgnoreCase(key) && resolvedValue.regionMatches(true, 0, "Bearer ", 0, 7)) {
+            apiClient.useBearerAuth(resolvedValue.substring(7).trim());
+            return;
+        }
 
         apiClient.addHeader(key, resolvedValue);
 
@@ -65,29 +64,30 @@ public class ApiSteps {
         AllureUtils.attachRequest("Header Added", key + " = " + resolvedValue);
     }
 
+    @Given("I use bearer token {string}")
     @And("user uses bearer token {string}")
     public void user_uses_bearer_token(String token) {
 
-        String resolvedToken = context.resolve(token);
-
-        user_adds_header_as("Authorization", "Bearer " + resolvedToken);
+        apiClient.useBearerAuth(context, token);
     }
 
+    @Given("I use basic auth with username {string} and password {string}")
     @And("user uses basic auth with username {string} and password {string}")
     public void user_uses_basic_auth_with_username_and_password(String username, String password) {
 
-        String resolvedUsername = context.resolve(username);
-        String resolvedPassword = context.resolve(password);
-        String credentials = resolvedUsername + ":" + resolvedPassword;
-        String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
+        apiClient.useBasicAuth(context, username, password);
+    }
 
-        user_adds_header_as("Authorization", "Basic " + encodedCredentials);
+    @Given("I use api key {string} in header {string}")
+    public void i_use_api_key_in_header(String apiKey, String headerName) {
+
+        apiClient.useApiKeyAuth(context, headerName, apiKey);
     }
 
     @And("user uses api key header {string} as {string}")
-    public void user_uses_api_key_header_as(String key, String value) {
+    public void user_uses_api_key_header_as(String headerName, String apiKey) {
 
-        user_adds_header_as(key, value);
+        apiClient.useApiKeyAuth(context, headerName, apiKey);
     }
 
     @And("user uses api key query param {string} as {string}")
@@ -99,9 +99,9 @@ public class ApiSteps {
     @And("user sets path param {string} as {string}")
     public void user_sets_path_param_as(String key, String value) {
 
-        String resolvedValue = context.resolve(value);
+        apiClient.addPathParam(context, key, value);
 
-        apiClient.addPathParam(key, resolvedValue);
+        String resolvedValue = apiClient.getPathParamsSnapshot().get(key);
 
         ConsoleLogger.info("Path Param Added", key + " = " + resolvedValue);
 
@@ -111,9 +111,9 @@ public class ApiSteps {
     @And("user sets query param {string} as {string}")
     public void user_sets_query_param_as(String key, String value) {
 
-        String resolvedValue = context.resolve(value);
+        apiClient.addQueryParam(context, key, value);
 
-        apiClient.addQueryParam(key, resolvedValue);
+        String resolvedValue = apiClient.getQueryParamsSnapshot().get(key);
 
         ConsoleLogger.info("Query Param Added", key + " = " + resolvedValue);
 
@@ -124,78 +124,84 @@ public class ApiSteps {
     @When("user sends GET request to {string}")
     public void user_sends_get_request_to(String endpoint) {
 
-        String resolvedEndpoint = resolveEndpoint(endpoint);
+        executeWithRequestCorrelation(() -> {
+            String resolvedEndpoint = apiClient.resolveEndpoint(context, endpoint);
 
-        storeLastRequest("GET", resolvedEndpoint, null);
+            storeLastRequest("GET", resolvedEndpoint, null);
 
-        context.setResponse(apiClient.get(resolvedEndpoint));
+            context.setResponse(apiClient.get(resolvedEndpoint));
 
-        context.setJsonPath(new JsonPath(context.getResponse().asString()));
+            context.setJsonPath(new JsonPath(context.getResponse().asString()));
 
-        AllureUtils.attachResponse("GET Response Body", context.getResponse().asPrettyString());
+            AllureUtils.attachResponse("GET Response Body", context.getResponse().asPrettyString());
 
-        RequestLogger.logRequest(
-                "GET Request",
-                resolvedEndpoint,
-                apiClient.getHeaders(),
-                context.getResponse()
-        );
+            RequestLogger.logRequest(
+                    "GET Request",
+                    resolvedEndpoint,
+                    apiClient.getHeaders(),
+                    context.getResponse()
+            );
+        });
     }
 
     // Deprecated: Use user_sends_request_to instead
     @When("user sends POST request to {string} with body")
     public void user_sends_post_request_to_with_body(String endpoint, String requestBody) {
 
-        String resolvedEndpoint = resolveEndpoint(endpoint);
-        String resolvedRequestBody = resolveRequestBody(requestBody);
+        executeWithRequestCorrelation(() -> {
+            String resolvedEndpoint = apiClient.resolveEndpoint(context, endpoint);
+            String resolvedRequestBody = RequestBodyResolver.resolve(context, requestBody);
 
-        storeLastRequest("POST", resolvedEndpoint, resolvedRequestBody);
+            storeLastRequest("POST", resolvedEndpoint, resolvedRequestBody);
 
-        context.setResponse(apiClient.post(resolvedEndpoint, resolvedRequestBody));
+            context.setResponse(apiClient.post(resolvedEndpoint, resolvedRequestBody));
 
-        context.setJsonPath(
-                new JsonPath(context.getResponse().asString())
-        );
+            context.setJsonPath(
+                    new JsonPath(context.getResponse().asString())
+            );
 
-        AllureUtils.attachRequest("POST Request Body", resolvedRequestBody);
-        AllureUtils.attachResponse("POST Response Body", context.getResponse().asPrettyString());
+            AllureUtils.attachRequest("POST Request Body", resolvedRequestBody);
+            AllureUtils.attachResponse("POST Response Body", context.getResponse().asPrettyString());
 
-        RequestLogger.logRequest(
-                "POST Request",
-                resolvedEndpoint,
-                apiClient.getHeaders(),
-                context.getResponse()
-        );
+            RequestLogger.logRequest(
+                    "POST Request",
+                    resolvedEndpoint,
+                    apiClient.getHeaders(),
+                    context.getResponse()
+            );
+        });
     }
 
     // Deprecated: Use user_sends_request_to instead
     @When("user sends POST request to {string} with json file {string}")
     public void user_sends_post_request_to_with_json_file(String endpoint, String filePath) {
 
-        String resolvedEndpoint = resolveEndpoint(endpoint);
+        executeWithRequestCorrelation(() -> {
+            String resolvedEndpoint = apiClient.resolveEndpoint(context, endpoint);
 
-        context.setRequestBody(JsonUtils.readJson(filePath));
-        String resolvedRequestBody = resolveRequestBody(context.getRequestBody());
+            context.setRequestBody(JsonUtils.readJson(filePath));
+            String resolvedRequestBody = RequestBodyResolver.resolve(context, context.getRequestBody());
 
-        storeLastRequest("POST", resolvedEndpoint, resolvedRequestBody);
+            storeLastRequest("POST", resolvedEndpoint, resolvedRequestBody);
 
-        context.setResponse(
-                apiClient.post(resolvedEndpoint, resolvedRequestBody)
-        );
+            context.setResponse(
+                    apiClient.post(resolvedEndpoint, resolvedRequestBody)
+            );
 
-        context.setJsonPath(
-                new JsonPath(context.getResponse().asString())
-        );
+            context.setJsonPath(
+                    new JsonPath(context.getResponse().asString())
+            );
 
-        AllureUtils.attachRequest("POST Request Body", resolvedRequestBody);
-        AllureUtils.attachResponse("POST Response Body", context.getResponse().asPrettyString());
+            AllureUtils.attachRequest("POST Request Body", resolvedRequestBody);
+            AllureUtils.attachResponse("POST Response Body", context.getResponse().asPrettyString());
 
-        RequestLogger.logRequest(
-                "POST Request From File",
-                resolvedEndpoint,
-                apiClient.getHeaders(),
-                context.getResponse()
-        );
+            RequestLogger.logRequest(
+                    "POST Request From File",
+                    resolvedEndpoint,
+                    apiClient.getHeaders(),
+                    context.getResponse()
+            );
+        });
     }
 
     @When("user loads json file {string}")
@@ -212,7 +218,7 @@ public class ApiSteps {
     @And("user updates request field {string} as {string}")
     public void user_updates_request_field_as(String key, String value) {
 
-        String resolvedValue = context.resolve(value);
+        String resolvedValue = ScenarioContextUtils.resolveText(context, value);
 
         context.setRequestBody(
                 JsonUtils.updateJsonField(context.getRequestBody(), key, resolvedValue)
@@ -228,28 +234,30 @@ public class ApiSteps {
     @When("user sends POST request to {string} with loaded body")
     public void user_sends_post_request_to_with_loaded_body(String endpoint) {
 
-        String resolvedEndpoint = resolveEndpoint(endpoint);
-        String resolvedRequestBody = resolveRequestBody(context.getRequestBody());
+        executeWithRequestCorrelation(() -> {
+            String resolvedEndpoint = apiClient.resolveEndpoint(context, endpoint);
+            String resolvedRequestBody = RequestBodyResolver.resolve(context, context.getRequestBody());
 
-        storeLastRequest("POST", resolvedEndpoint, resolvedRequestBody);
+            storeLastRequest("POST", resolvedEndpoint, resolvedRequestBody);
 
-        context.setResponse(
-                apiClient.post(resolvedEndpoint, resolvedRequestBody)
-        );
+            context.setResponse(
+                    apiClient.post(resolvedEndpoint, resolvedRequestBody)
+            );
 
-        context.setJsonPath(
-                new JsonPath(context.getResponse().asString())
-        );
+            context.setJsonPath(
+                    new JsonPath(context.getResponse().asString())
+            );
 
-        AllureUtils.attachRequest("Final Request Body", resolvedRequestBody);
-        AllureUtils.attachResponse("POST Response Body", context.getResponse().asPrettyString());
+            AllureUtils.attachRequest("Final Request Body", resolvedRequestBody);
+            AllureUtils.attachResponse("POST Response Body", context.getResponse().asPrettyString());
 
-        RequestLogger.logRequest(
-                "POST Request",
-                resolvedEndpoint,
-                apiClient.getHeaders(),
-                context.getResponse()
-        );
+            RequestLogger.logRequest(
+                    "POST Request",
+                    resolvedEndpoint,
+                    apiClient.getHeaders(),
+                    context.getResponse()
+            );
+        });
     }
 
     @Then("response status code should be {int}")
@@ -386,67 +394,71 @@ public class ApiSteps {
     @When("user sends {string} request to {string}")
     public void user_sends_request_to(String method, String endpoint) {
 
-        String resolvedEndpoint = resolveEndpoint(endpoint);
+        executeWithRequestCorrelation(() -> {
+            String resolvedEndpoint = apiClient.resolveEndpoint(context, endpoint);
 
-        storeLastRequest(method, resolvedEndpoint, null);
+            storeLastRequest(method, resolvedEndpoint, null);
 
-        context.setResponse(
-                apiClient.sendRequest(method, resolvedEndpoint, null)
-        );
+            context.setResponse(
+                    apiClient.sendRequest(method, resolvedEndpoint, null)
+            );
 
-        context.setJsonPath(
-                new JsonPath(context.getResponse().asString())
-        );
+            context.setJsonPath(
+                    new JsonPath(context.getResponse().asString())
+            );
 
-        AllureUtils.attachResponse(
-                method + " Response Body",
-                context.getResponse().asPrettyString()
-        );
+            AllureUtils.attachResponse(
+                    method + " Response Body",
+                    context.getResponse().asPrettyString()
+            );
 
-        RequestLogger.logRequest(
-                method + " Request",
-                resolvedEndpoint,
-                apiClient.getHeaders(),
-                context.getResponse()
-        );
+            RequestLogger.logRequest(
+                    method + " Request",
+                    resolvedEndpoint,
+                    apiClient.getHeaders(),
+                    context.getResponse()
+            );
+        });
     }
 
     @When("user sends {string} request to {string} with loaded body")
     public void user_sends_request_to_with_loaded_body(String method, String endpoint) {
 
-        String resolvedEndpoint = resolveEndpoint(endpoint);
-        String resolvedRequestBody = resolveRequestBody(context.getRequestBody());
+        executeWithRequestCorrelation(() -> {
+            String resolvedEndpoint = apiClient.resolveEndpoint(context, endpoint);
+            String resolvedRequestBody = RequestBodyResolver.resolve(context, context.getRequestBody());
 
-        storeLastRequest(method, resolvedEndpoint, resolvedRequestBody);
+            storeLastRequest(method, resolvedEndpoint, resolvedRequestBody);
 
-        context.setResponse(
-                apiClient.sendRequest(
-                        method,
-                        resolvedEndpoint,
-                        resolvedRequestBody
-                )
-        );
+            context.setResponse(
+                    apiClient.sendRequest(
+                            method,
+                            resolvedEndpoint,
+                            resolvedRequestBody
+                    )
+            );
 
-        context.setJsonPath(
-                new JsonPath(context.getResponse().asString())
-        );
+            context.setJsonPath(
+                    new JsonPath(context.getResponse().asString())
+            );
 
-        AllureUtils.attachRequest(
-                method + " Request Body",
-                resolvedRequestBody
-        );
+            AllureUtils.attachRequest(
+                    method + " Request Body",
+                    resolvedRequestBody
+            );
 
-        AllureUtils.attachResponse(
-                method + " Response Body",
-                context.getResponse().asPrettyString()
-        );
+            AllureUtils.attachResponse(
+                    method + " Response Body",
+                    context.getResponse().asPrettyString()
+            );
 
-        RequestLogger.logRequest(
-                method + " Request",
-                resolvedEndpoint,
-                apiClient.getHeaders(),
-                context.getResponse()
-        );
+            RequestLogger.logRequest(
+                    method + " Request",
+                    resolvedEndpoint,
+                    apiClient.getHeaders(),
+                    context.getResponse()
+            );
+        });
     }
 
     @And("^user polls last request until response status code should be (\\d+) within (\\d+) seconds every (\\d+) seconds?$")
@@ -513,41 +525,15 @@ public class ApiSteps {
         );
     }
 
-    private String resolveEndpoint(String endpoint) {
+    private void executeWithRequestCorrelation(Runnable action) {
 
-        if (endpoint == null || !endpoint.contains("{")) return endpoint;
+        RequestCorrelationContext.startRequest();
 
-        Matcher matcher = ENDPOINT_PLACEHOLDER_PATTERN.matcher(endpoint);
-        StringBuffer resolvedEndpoint = new StringBuffer();
-
-        while (matcher.find()) {
-            String placeholderName = matcher.group(1);
-            String replacement = apiClient.hasPathParam(placeholderName)
-                    ? matcher.group()
-                    : context.resolve(matcher.group());
-
-            matcher.appendReplacement(resolvedEndpoint, Matcher.quoteReplacement(replacement));
+        try {
+            action.run();
+        } finally {
+            RequestCorrelationContext.clear();
         }
-
-        matcher.appendTail(resolvedEndpoint);
-
-        return resolvedEndpoint.toString();
     }
 
-    private String resolveRequestBody(String requestBody) {
-
-        if (requestBody == null || !requestBody.contains("{")) return requestBody;
-
-        Matcher matcher = REQUEST_BODY_PLACEHOLDER_PATTERN.matcher(requestBody);
-        StringBuffer resolvedBody = new StringBuffer();
-
-        while (matcher.find()) {
-            String resolvedValue = context.resolve(matcher.group());
-            matcher.appendReplacement(resolvedBody, Matcher.quoteReplacement(resolvedValue));
-        }
-
-        matcher.appendTail(resolvedBody);
-
-        return resolvedBody.toString();
-    }
 }

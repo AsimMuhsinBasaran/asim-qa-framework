@@ -9,6 +9,17 @@ dist/
 # Reporting/output
 allure-results/
 allure-report/
+reports/*
+!reports/.gitignore
+test-data/runtime/*.json
+test-data/runtime/*.log
+
+# Cypress workspace outputs
+cypress-ui/node_modules/
+cypress-ui/cypress/videos/
+cypress-ui/cypress/screenshots/
+cypress-ui/allure-results/
+cypress-ui/.nyc_output/
 
 # macOS
 .DS_Store

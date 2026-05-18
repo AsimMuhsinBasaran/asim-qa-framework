@@ -6,12 +6,9 @@ import io.restassured.response.Response;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import com.asim.qa.utils.ScenarioContextUtils;
 
 public class TestContext {
-
-    private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\{([^{}]+)}");
 
     private Response response;
     private JsonPath jsonPath;
@@ -107,36 +104,21 @@ public class TestContext {
         return scenarioVariables.get(key);
     }
 
+    public boolean contains(String key) {
+
+        return scenarioVariables.containsKey(key);
+    }
+
     public Map<String, String> getScenarioVariablesSnapshot() {
         return new LinkedHashMap<>(scenarioVariables);
     }
 
     public String requireScenarioVariable(String key) {
-        String value = scenarioVariables.get(key);
-
-        if (value == null) {
-            throw new RuntimeException("Scenario variable not found: " + key);
-        }
-
-        return value;
+        return ScenarioContextUtils.requireVariable(this, key);
     }
 
     public String resolve(String value) {
-        if (value == null || !value.contains("{")) return value;
-
-        Matcher matcher = PLACEHOLDER_PATTERN.matcher(value);
-        StringBuffer resolved = new StringBuffer();
-
-        while (matcher.find()) {
-            String variableName = matcher.group(1);
-            String variableValue = requireScenarioVariable(variableName);
-
-            matcher.appendReplacement(resolved, Matcher.quoteReplacement(variableValue));
-        }
-
-        matcher.appendTail(resolved);
-
-        return resolved.toString();
+        return ScenarioContextUtils.resolveText(this, value);
     }
 
     public void clearScenarioVariables() {

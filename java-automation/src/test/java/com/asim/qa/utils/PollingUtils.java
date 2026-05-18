@@ -92,34 +92,40 @@ public class PollingUtils {
         List<String> summaryLines = new ArrayList<>();
 
         while (true) {
-            attempts++;
-            updateContextWithPollAttempt(context, apiClient, lastRequest);
-            lastActualValue = actualValueSupplier.get();
-            summaryLines.add(formatAttemptSummary(attempts, conditionDescription, lastActualValue));
+            RequestCorrelationContext.startRequest();
 
-            ConsoleLogger.info("Poll Attempt", attempts);
-            ConsoleLogger.info("Poll Condition", conditionDescription);
-            ConsoleLogger.info("Poll Actual", lastActualValue);
+            try {
+                attempts++;
+                updateContextWithPollAttempt(context, apiClient, lastRequest);
+                lastActualValue = actualValueSupplier.get();
+                summaryLines.add(formatAttemptSummary(attempts, conditionDescription, lastActualValue));
 
-            if (Boolean.TRUE.equals(condition.get())) {
-                AllureUtils.attachPollingSummary(buildPollingSummary(conditionDescription, summaryLines, true, attempts, lastActualValue));
-                ConsoleLogger.pass("Polling condition sağlandı");
-                return;
+                ConsoleLogger.info("Poll Attempt", attempts);
+                ConsoleLogger.info("Poll Condition", conditionDescription);
+                ConsoleLogger.info("Poll Actual", lastActualValue);
+
+                if (Boolean.TRUE.equals(condition.get())) {
+                    AllureUtils.attachPollingSummary(buildPollingSummary(conditionDescription, summaryLines, true, attempts, lastActualValue));
+                    ConsoleLogger.pass("Polling condition sağlandı");
+                    return;
+                }
+
+                long remainingNanos = deadlineNanos - System.nanoTime();
+
+                if (remainingNanos <= 0) {
+                    AllureUtils.attachPollingSummary(buildPollingSummary(conditionDescription, summaryLines, false, attempts, lastActualValue));
+                    throw new AssertionError(
+                            "Polling timed out after " + timeoutSeconds + " seconds and " + attempts +
+                                    " attempts. Condition: " + conditionDescription +
+                                    ". Last actual value: " + lastActualValue +
+                                    ". Last request: GET " + lastRequest.getEndpoint()
+                    );
+                }
+
+                sleep(Math.min(TimeUnit.SECONDS.toNanos(intervalSeconds), remainingNanos));
+            } finally {
+                RequestCorrelationContext.clear();
             }
-
-            long remainingNanos = deadlineNanos - System.nanoTime();
-
-            if (remainingNanos <= 0) {
-                AllureUtils.attachPollingSummary(buildPollingSummary(conditionDescription, summaryLines, false, attempts, lastActualValue));
-                throw new AssertionError(
-                        "Polling timed out after " + timeoutSeconds + " seconds and " + attempts +
-                                " attempts. Condition: " + conditionDescription +
-                                ". Last actual value: " + lastActualValue +
-                                ". Last request: GET " + lastRequest.getEndpoint()
-                );
-            }
-
-            sleep(Math.min(TimeUnit.SECONDS.toNanos(intervalSeconds), remainingNanos));
         }
     }
 

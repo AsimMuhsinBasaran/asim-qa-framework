@@ -12,28 +12,45 @@ public class MockServerHooks {
     private static WireMockServer wireMockServer;
 
     @BeforeAll
-    public static void startMockServer() {
+    public static synchronized void startMockServer() {
         if (!"mock".equals(ConfigReader.getActiveEnv())) {
             System.out.println("Mock Server skipped for env: " + ConfigReader.getActiveEnv());
             return;
         }
 
-        wireMockServer = new WireMockServer(
+        if (wireMockServer != null && wireMockServer.isRunning()) {
+            System.out.println("✅ Mock Server already running on port " + ConfigReader.getMockServerPort());
+            return;
+        }
+
+        int port = ConfigReader.getMockServerPort();
+        WireMockServer server = new WireMockServer(
                 options()
-                        .port(9090)
+                        .port(port)
                         .usingFilesUnderDirectory("../mock-server")
         );
 
-        wireMockServer.start();
-
-        System.out.println("✅ Mock Server started on port 9090");
+        try {
+            server.start();
+            wireMockServer = server;
+            System.out.println("✅ Mock Server started on port " + port);
+        } catch (RuntimeException e) {
+            throw new RuntimeException(
+                    "Mock Server could not start on port " + port
+                            + " for env " + ConfigReader.getActiveEnv()
+                            + ". Another test run or process may already be using this port.",
+                    e
+            );
+        }
     }
 
     @AfterAll
-    public static void stopMockServer() {
+    public static synchronized void stopMockServer() {
         if (wireMockServer != null && wireMockServer.isRunning()) {
             wireMockServer.stop();
             System.out.println("🛑 Mock Server stopped");
         }
+
+        wireMockServer = null;
     }
 }
