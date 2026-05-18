@@ -13,6 +13,10 @@
     <artifactId>java-automation</artifactId>
     <packaging>jar</packaging>
 
+    <properties>
+        <cucumber.filter.tags>@mock and @e2e</cucumber.filter.tags>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
@@ -120,6 +124,7 @@
                     </properties>
                     <systemPropertyVariables>
                         <allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
+                        <cucumber.filter.tags>${cucumber.filter.tags}</cucumber.filter.tags>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
