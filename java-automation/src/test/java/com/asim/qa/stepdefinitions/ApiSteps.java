@@ -9,13 +9,8 @@ import com.asim.qa.context.TestContext;
 import io.restassured.path.json.JsonPath;
 
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class ApiSteps {
-
-    private static final Pattern REQUEST_BODY_PLACEHOLDER_PATTERN = Pattern.compile("\\{([A-Za-z0-9_.-]+)}");
-    private static final Pattern ENDPOINT_PLACEHOLDER_PATTERN = Pattern.compile("\\{([^{}]+)}");
 
     String baseUrl;
     private final TestContext context;
@@ -104,9 +99,9 @@ public class ApiSteps {
     @And("user sets path param {string} as {string}")
     public void user_sets_path_param_as(String key, String value) {
 
-        String resolvedValue = ScenarioContextUtils.resolveText(context, value);
+        apiClient.addPathParam(context, key, value);
 
-        apiClient.addPathParam(key, resolvedValue);
+        String resolvedValue = apiClient.getPathParamsSnapshot().get(key);
 
         ConsoleLogger.info("Path Param Added", key + " = " + resolvedValue);
 
@@ -116,9 +111,9 @@ public class ApiSteps {
     @And("user sets query param {string} as {string}")
     public void user_sets_query_param_as(String key, String value) {
 
-        String resolvedValue = ScenarioContextUtils.resolveText(context, value);
+        apiClient.addQueryParam(context, key, value);
 
-        apiClient.addQueryParam(key, resolvedValue);
+        String resolvedValue = apiClient.getQueryParamsSnapshot().get(key);
 
         ConsoleLogger.info("Query Param Added", key + " = " + resolvedValue);
 
@@ -130,7 +125,7 @@ public class ApiSteps {
     public void user_sends_get_request_to(String endpoint) {
 
         executeWithRequestCorrelation(() -> {
-            String resolvedEndpoint = resolveEndpoint(endpoint);
+            String resolvedEndpoint = apiClient.resolveEndpoint(context, endpoint);
 
             storeLastRequest("GET", resolvedEndpoint, null);
 
@@ -154,8 +149,8 @@ public class ApiSteps {
     public void user_sends_post_request_to_with_body(String endpoint, String requestBody) {
 
         executeWithRequestCorrelation(() -> {
-            String resolvedEndpoint = resolveEndpoint(endpoint);
-            String resolvedRequestBody = resolveRequestBody(requestBody);
+            String resolvedEndpoint = apiClient.resolveEndpoint(context, endpoint);
+            String resolvedRequestBody = RequestBodyResolver.resolve(context, requestBody);
 
             storeLastRequest("POST", resolvedEndpoint, resolvedRequestBody);
 
@@ -182,10 +177,10 @@ public class ApiSteps {
     public void user_sends_post_request_to_with_json_file(String endpoint, String filePath) {
 
         executeWithRequestCorrelation(() -> {
-            String resolvedEndpoint = resolveEndpoint(endpoint);
+            String resolvedEndpoint = apiClient.resolveEndpoint(context, endpoint);
 
             context.setRequestBody(JsonUtils.readJson(filePath));
-            String resolvedRequestBody = resolveRequestBody(context.getRequestBody());
+            String resolvedRequestBody = RequestBodyResolver.resolve(context, context.getRequestBody());
 
             storeLastRequest("POST", resolvedEndpoint, resolvedRequestBody);
 
@@ -240,8 +235,8 @@ public class ApiSteps {
     public void user_sends_post_request_to_with_loaded_body(String endpoint) {
 
         executeWithRequestCorrelation(() -> {
-            String resolvedEndpoint = resolveEndpoint(endpoint);
-            String resolvedRequestBody = resolveRequestBody(context.getRequestBody());
+            String resolvedEndpoint = apiClient.resolveEndpoint(context, endpoint);
+            String resolvedRequestBody = RequestBodyResolver.resolve(context, context.getRequestBody());
 
             storeLastRequest("POST", resolvedEndpoint, resolvedRequestBody);
 
@@ -400,7 +395,7 @@ public class ApiSteps {
     public void user_sends_request_to(String method, String endpoint) {
 
         executeWithRequestCorrelation(() -> {
-            String resolvedEndpoint = resolveEndpoint(endpoint);
+            String resolvedEndpoint = apiClient.resolveEndpoint(context, endpoint);
 
             storeLastRequest(method, resolvedEndpoint, null);
 
@@ -430,8 +425,8 @@ public class ApiSteps {
     public void user_sends_request_to_with_loaded_body(String method, String endpoint) {
 
         executeWithRequestCorrelation(() -> {
-            String resolvedEndpoint = resolveEndpoint(endpoint);
-            String resolvedRequestBody = resolveRequestBody(context.getRequestBody());
+            String resolvedEndpoint = apiClient.resolveEndpoint(context, endpoint);
+            String resolvedRequestBody = RequestBodyResolver.resolve(context, context.getRequestBody());
 
             storeLastRequest(method, resolvedEndpoint, resolvedRequestBody);
 
@@ -541,41 +536,4 @@ public class ApiSteps {
         }
     }
 
-    private String resolveEndpoint(String endpoint) {
-
-        if (endpoint == null || !endpoint.contains("{")) return endpoint;
-
-        Matcher matcher = ENDPOINT_PLACEHOLDER_PATTERN.matcher(endpoint);
-        StringBuffer resolvedEndpoint = new StringBuffer();
-
-        while (matcher.find()) {
-            String placeholderName = matcher.group(1);
-            String replacement = apiClient.hasPathParam(placeholderName)
-                    ? matcher.group()
-                    : ScenarioContextUtils.resolveText(context, matcher.group());
-
-            matcher.appendReplacement(resolvedEndpoint, Matcher.quoteReplacement(replacement));
-        }
-
-        matcher.appendTail(resolvedEndpoint);
-
-        return resolvedEndpoint.toString();
-    }
-
-    private String resolveRequestBody(String requestBody) {
-
-        if (requestBody == null || !requestBody.contains("{")) return requestBody;
-
-        Matcher matcher = REQUEST_BODY_PLACEHOLDER_PATTERN.matcher(requestBody);
-        StringBuffer resolvedBody = new StringBuffer();
-
-        while (matcher.find()) {
-            String resolvedValue = ScenarioContextUtils.resolveText(context, matcher.group());
-            matcher.appendReplacement(resolvedBody, Matcher.quoteReplacement(resolvedValue));
-        }
-
-        matcher.appendTail(resolvedBody);
-
-        return resolvedBody.toString();
-    }
 }

@@ -21,7 +21,6 @@ import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,8 +34,7 @@ public class ApiClient {
     private static final long GET_RETRY_DELAY_MILLIS = 1000;
 
     private final Map<String, String> headers = new HashMap<>();
-    private final Map<String, String> pathParams = new LinkedHashMap<>();
-    private final Map<String, String> queryParams = new LinkedHashMap<>();
+    private final RequestParamManager requestParamManager = new RequestParamManager();
     private final AuthManager authManager = new AuthManager();
     private String baseUrl;
 
@@ -52,12 +50,12 @@ public class ApiClient {
 
     public Map<String, String> getPathParamsSnapshot() {
 
-        return new LinkedHashMap<>(pathParams);
+        return requestParamManager.getPathParamsSnapshot();
     }
 
     public Map<String, String> getQueryParamsSnapshot() {
 
-        return new LinkedHashMap<>(queryParams);
+        return requestParamManager.getQueryParamsSnapshot();
     }
 
     public ApiClient() {
@@ -121,17 +119,27 @@ public class ApiClient {
 
     public void addPathParam(String key, String value) {
 
-        pathParams.put(key, value);
+        requestParamManager.addPathParam(key, value);
+    }
+
+    public void addPathParam(TestContext context, String key, String value) {
+
+        requestParamManager.addPathParam(context, key, value);
     }
 
     public void addQueryParam(String key, String value) {
 
-        queryParams.put(key, value);
+        requestParamManager.addQueryParam(key, value);
+    }
+
+    public void addQueryParam(TestContext context, String key, String value) {
+
+        requestParamManager.addQueryParam(context, key, value);
     }
 
     public boolean hasPathParam(String key) {
 
-        return pathParams.containsKey(key);
+        return requestParamManager.hasPathParam(key);
     }
 
     public void clearHeaders() {
@@ -143,8 +151,7 @@ public class ApiClient {
 
     public void clearParams() {
 
-        pathParams.clear();
-        queryParams.clear();
+        requestParamManager.clear();
     }
 
     private RequestSpecification requestSpec() {
@@ -166,6 +173,11 @@ public class ApiClient {
                                 .setParam("http.connection-manager.timeout", (long) timeoutMs)
                 ))
                 .headers(effectiveHeaders);
+    }
+
+    public String resolveEndpoint(TestContext context, String endpoint) {
+
+        return requestParamManager.resolveEndpoint(context, endpoint);
     }
 
     private String requireBaseUrl() {
@@ -190,14 +202,7 @@ public class ApiClient {
     public Response sendRequest(String method, String endpoint, String body) {
 
         RequestSpecification spec = requestSpec();
-
-        if (!pathParams.isEmpty()) {
-            spec.pathParams(pathParams);
-        }
-
-        if (!queryParams.isEmpty()) {
-            spec.queryParams(queryParams);
-        }
+        requestParamManager.applyTo(spec);
 
         if (body != null && !body.isBlank()) {
             spec.body(body);
@@ -223,14 +228,7 @@ public class ApiClient {
                                 Map<String, String> requestQueryParams) {
 
         RequestSpecification spec = requestSpec(requestHeaders);
-
-        if (!requestPathParams.isEmpty()) {
-            spec.pathParams(requestPathParams);
-        }
-
-        if (!requestQueryParams.isEmpty()) {
-            spec.queryParams(requestQueryParams);
-        }
+        requestParamManager.applyTo(spec, requestPathParams, requestQueryParams);
 
         if (body != null && !body.isBlank()) {
             spec.body(body);
