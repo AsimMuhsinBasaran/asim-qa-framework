@@ -32,10 +32,31 @@ public class ConfigReader {
 
     public static String getBaseUrl() {
 
-        String env = get("env");
+        String env = resolveActiveEnv();
+        String baseUrlKey = "base.url." + env;
+        String baseUrl = get(baseUrlKey);
 
-        return get("base.url." + env);
+        if (baseUrl == null || baseUrl.isBlank()) {
+            throw new RuntimeException("Base URL bulunamadı: " + baseUrlKey);
+        }
 
+        return baseUrl;
+
+    }
+
+    private static String resolveActiveEnv() {
+
+        String env = System.getProperty("env");
+
+        if (env == null || env.isBlank()) {
+            env = get("env");
+        }
+
+        if (env == null || env.isBlank()) {
+            env = "mock";
+        }
+
+        return env.trim().toLowerCase();
     }
 
     public static int getApiTimeoutMs() {
