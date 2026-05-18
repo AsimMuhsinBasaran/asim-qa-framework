@@ -14,6 +14,11 @@ public class ConsoleLogger {
         SCENARIO_NAME.remove();
     }
 
+    public static String getScenarioName() {
+
+        return SCENARIO_NAME.get();
+    }
+
     public static void section(String title) {
 
         println("");
@@ -80,6 +85,11 @@ public class ConsoleLogger {
         for (String line : lines) {
             println(line);
         }
+    }
+
+    public static void block(String block) {
+
+        println(block == null ? "" : block);
     }
 
     private static void println(String message) {

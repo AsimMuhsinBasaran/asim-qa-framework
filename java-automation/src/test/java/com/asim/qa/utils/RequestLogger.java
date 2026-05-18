@@ -13,21 +13,57 @@ public class RequestLogger {
             Response response
     ) {
 
-        ConsoleLogger.section(title);
-        ConsoleLogger.info("Request ID", RequestCorrelationContext.getRequestId() == null ? "n/a" : RequestCorrelationContext.getRequestId());
+        ConsoleLogger.block(buildBlock(title, endpoint, headers, response));
+    }
 
-        ConsoleLogger.info("Endpoint", endpoint);
+    private static String buildBlock(
+            String title,
+            String endpoint,
+            Map<String, String> headers,
+            Response response
+    ) {
 
-        ConsoleLogger.info("Headers", headers);
+        StringBuilder builder = new StringBuilder();
+        builder.append("\n");
+        builder.append("==================================================\n");
+        builder.append("🚀 ").append(title).append("\n");
+        builder.append("==================================================\n");
+        builder.append(String.format("🔹 %-20s : %s%n", "Request ID", requestIdOrNA()));
+        builder.append(String.format("🔹 %-20s : %s%n", "Endpoint", endpoint));
+        builder.append(String.format("🔹 %-20s : %s%n", "Headers", maskedHeaders(headers)));
+        builder.append(String.format("🔹 %-20s : %s%n", "Status Code", response.statusCode()));
+        builder.append(String.format("🔹 %-20s : %s%n", "Response Time", normalizedResponseTime(response)));
+        builder.append("--------------------------------------------------\n");
+        builder.append(maskedBody(response));
+        builder.append("\n");
+        builder.append("--------------------------------------------------");
+        return builder.toString();
+    }
 
-        ConsoleLogger.info("Status Code", response.statusCode());
+    private static String requestIdOrNA() {
 
-        ConsoleLogger.info("Response Time", response.time() + " ms");
+        String requestId = RequestCorrelationContext.getRequestId();
+        return requestId == null || requestId.isBlank() ? "n/a" : requestId;
+    }
 
-        ConsoleLogger.line();
+    private static String normalizedResponseTime(Response response) {
 
-        ConsoleLogger.body(response.asPrettyString());
+        long responseTime = response.time();
+        if (responseTime < 0) {
+            return "N/A";
+        }
 
-        ConsoleLogger.line();
+        return responseTime + " ms";
+    }
+
+    private static String maskedBody(Response response) {
+
+        String maskedBody = SensitiveDataMasker.mask(response.asPrettyString());
+        return maskedBody == null || maskedBody.isBlank() ? "[no body]" : maskedBody;
+    }
+
+    private static String maskedHeaders(Map<String, String> headers) {
+
+        return SensitiveDataMasker.mask(headers);
     }
 }
