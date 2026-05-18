@@ -3,6 +3,9 @@ package com.asim.qa.api;
 import com.asim.qa.auth.AuthManager;
 import com.asim.qa.context.TestContext;
 import com.asim.qa.config.ConfigReader;
+import com.asim.qa.retry.RetryClassifier;
+import com.asim.qa.retry.RetryDecision;
+import com.asim.qa.retry.RetryPolicy;
 import com.asim.qa.utils.ConsoleLogger;
 import io.restassured.builder.ResponseBuilder;
 import io.restassured.http.Header;
@@ -15,10 +18,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
-import java.net.ConnectException;
 import java.net.SocketException;
-import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
@@ -30,12 +30,11 @@ import static io.restassured.config.RestAssuredConfig.config;
 
 public class ApiClient {
 
-    private static final int MAX_GET_RETRY_COUNT = 2;
-    private static final long GET_RETRY_DELAY_MILLIS = 1000;
-
     private final Map<String, String> headers = new HashMap<>();
     private final RequestParamManager requestParamManager = new RequestParamManager();
     private final AuthManager authManager = new AuthManager();
+    private final RetryClassifier retryClassifier = new RetryClassifier();
+    private final RetryPolicy retryPolicy = RetryPolicy.defaultPolicy();
     private String baseUrl;
 
     public Map<String, String> getHeaders() {
@@ -248,21 +247,25 @@ public class ApiClient {
             return executeRequest(spec, method, endpoint);
         }
 
-        for (int attempt = 0; attempt <= MAX_GET_RETRY_COUNT; attempt++) {
+        for (int attempt = 0; attempt <= retryPolicy.getMaxRetryCount(); attempt++) {
             try {
                 Response response = executeRequest(spec, method, endpoint);
 
-                if (!isRetryableStatus(response.statusCode()) || attempt == MAX_GET_RETRY_COUNT) {
+                RetryDecision decision = retryClassifier.classify(response);
+
+                if (!decision.isRetryable() || attempt == retryPolicy.getMaxRetryCount()) {
                     return response;
                 }
 
-                logRetry(attempt + 1, "HTTP status " + response.statusCode());
+                logRetry(attempt + 1, decision);
             } catch (Exception e) {
-                if (!isRetryableException(e) || attempt == MAX_GET_RETRY_COUNT) {
+                RetryDecision decision = retryClassifier.classify(e);
+
+                if (!decision.isRetryable() || attempt == retryPolicy.getMaxRetryCount()) {
                     return rethrow(e);
                 }
 
-                logRetry(attempt + 1, retryReason(e));
+                logRetry(attempt + 1, decision);
             }
 
             waitBeforeRetry();
@@ -318,62 +321,17 @@ public class ApiClient {
         return builder.build();
     }
 
-    private boolean isRetryableStatus(int statusCode) {
+    private void logRetry(int retryAttempt, RetryDecision decision) {
 
-        return statusCode == 502 || statusCode == 503 || statusCode == 504;
-    }
-
-    private boolean isRetryableException(Throwable throwable) {
-
-        return retryReason(throwable) != null;
-    }
-
-    private String retryReason(Throwable throwable) {
-
-        Throwable current = throwable;
-
-        while (current != null) {
-            if (current instanceof SocketTimeoutException) {
-                return "Socket timeout";
-            }
-
-            if (current instanceof ConnectException) {
-                return "Connect exception";
-            }
-
-            if (current instanceof UnknownHostException) {
-                return "Unknown host";
-            }
-
-            if (isConnectionReset(current)) {
-                return "Connection reset";
-            }
-
-            current = current.getCause();
-        }
-
-        return null;
-    }
-
-    private boolean isConnectionReset(Throwable throwable) {
-
-        String message = throwable.getMessage();
-
-        return throwable instanceof SocketException
-                && message != null
-                && message.toLowerCase().contains("connection reset");
-    }
-
-    private void logRetry(int retryAttempt, String retryReason) {
-
-        ConsoleLogger.info("Retry Attempt", retryAttempt + "/" + MAX_GET_RETRY_COUNT);
-        ConsoleLogger.info("Retry Reason", retryReason);
+        ConsoleLogger.info("Retry Attempt", retryAttempt + "/" + retryPolicy.getMaxRetryCount());
+        ConsoleLogger.info("Retry Reason", decision.getReason());
+        ConsoleLogger.info("Retryable", decision.isRetryable());
     }
 
     private void waitBeforeRetry() {
 
         try {
-            Thread.sleep(GET_RETRY_DELAY_MILLIS);
+            Thread.sleep(retryPolicy.getRetryDelayMillis());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException("GET retry interrupted while waiting for next attempt.", e);
