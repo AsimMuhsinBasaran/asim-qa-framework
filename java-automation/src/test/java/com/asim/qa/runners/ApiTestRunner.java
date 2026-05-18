@@ -16,7 +16,6 @@ import org.testng.annotations.DataProvider;
                 "json:target/cucumber.json",
                 "io.qameta.allure.cucumber7jvm.AllureCucumber7Jvm"
         },
-        tags = "@mock and @e2e",
         monochrome = true
 )
 public class ApiTestRunner extends AbstractTestNGCucumberTests {
