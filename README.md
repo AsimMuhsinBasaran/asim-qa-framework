@@ -64,7 +64,7 @@ A Java-based QA automation framework focused on API testing with Cucumber BDD, R
 ## Repository Structure
 
 - `java-automation/`: current Java API automation framework
-- `cypress-ui/`: future Cypress + TypeScript UI automation workspace
+- `cypress-ui/`: bootstrapped Cypress + TypeScript UI workspace
 - `mock-server/`: WireMock mappings and mock backend stubs
 - `test-data/`: shared contracts and runtime bridge data
 - `docker/`: future local infrastructure and container support files

@@ -19,6 +19,7 @@ cypress-ui/node_modules/
 cypress-ui/cypress/videos/
 cypress-ui/cypress/screenshots/
 cypress-ui/allure-results/
+cypress-ui/allure-report/
 cypress-ui/.nyc_output/
 
 # macOS

@@ -1,0 +1,16 @@
+{
+  "name": "cypress-ui",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cypress + TypeScript UI workspace for the unified QA ecosystem.",
+  "scripts": {
+    "test": "cypress run",
+    "test:open": "cypress open",
+    "test:headed": "cypress run --headed"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.29",
+    "cypress": "^14.5.2",
+    "typescript": "^5.8.3"
+  }
+}
