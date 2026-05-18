@@ -26,6 +26,16 @@ public class SensitiveDataMaskerTest {
     }
 
     @Test
+    public void should_mask_basic_authorization_header() {
+
+        String input = "Authorization: Basic dXNlcjpwYXNz";
+
+        String masked = SensitiveDataMasker.mask(input);
+
+        Assert.assertEquals(masked, "Authorization: Basic ***MASKED***");
+    }
+
+    @Test
     public void should_mask_key_value_password() {
 
         String input = "password=mySecret123";

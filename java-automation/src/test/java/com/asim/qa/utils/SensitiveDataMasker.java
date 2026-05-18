@@ -10,6 +10,9 @@ public final class SensitiveDataMasker {
     private static final Pattern AUTHORIZATION_HEADER_PATTERN = Pattern.compile(
             "(?i)(\\bAuthorization\\s*[:=]\\s*Bearer\\s+)([^,}\\]\\s]+)"
     );
+    private static final Pattern BASIC_AUTHORIZATION_HEADER_PATTERN = Pattern.compile(
+            "(?i)(\\bAuthorization\\s*[:=]\\s*Basic\\s+)([^,}\\]\\s]+)"
+    );
     private static final Pattern BEARER_PATTERN = Pattern.compile(
             "(?i)(\\bBearer\\s+)([^,}\\]\\s]+)"
     );
@@ -36,6 +39,7 @@ public final class SensitiveDataMasker {
         }
 
         String masked = maskPattern(input, AUTHORIZATION_HEADER_PATTERN, "$1" + MASK);
+        masked = maskPattern(masked, BASIC_AUTHORIZATION_HEADER_PATTERN, "$1" + MASK);
         masked = maskPattern(masked, BEARER_PATTERN, "$1" + MASK);
         masked = maskPattern(masked, JSON_STRING_FIELD_PATTERN, "$1" + MASK + "$3");
         masked = maskPattern(masked, JSON_NON_STRING_FIELD_PATTERN, "$1\"" + MASK + "\"");

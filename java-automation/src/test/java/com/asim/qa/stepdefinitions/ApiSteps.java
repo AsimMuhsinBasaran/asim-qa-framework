@@ -8,8 +8,6 @@ import io.cucumber.java.en.*;
 import com.asim.qa.context.TestContext;
 import io.restassured.path.json.JsonPath;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -31,6 +29,7 @@ public class ApiSteps {
     public void reset_request_state() {
 
         apiClient.clearHeaders();
+        apiClient.clearAuth();
         apiClient.clearParams();
         apiClient.clearBaseUrl();
         context.setRequestBody(null);
@@ -58,6 +57,11 @@ public class ApiSteps {
 
         String resolvedValue = ScenarioContextUtils.resolveText(context, value);
 
+        if ("Authorization".equalsIgnoreCase(key) && resolvedValue.regionMatches(true, 0, "Bearer ", 0, 7)) {
+            apiClient.useBearerAuth(resolvedValue.substring(7).trim());
+            return;
+        }
+
         apiClient.addHeader(key, resolvedValue);
 
         ConsoleLogger.info("Header Added", key + " = " + resolvedValue);
@@ -65,29 +69,30 @@ public class ApiSteps {
         AllureUtils.attachRequest("Header Added", key + " = " + resolvedValue);
     }
 
+    @Given("I use bearer token {string}")
     @And("user uses bearer token {string}")
     public void user_uses_bearer_token(String token) {
 
-        String resolvedToken = ScenarioContextUtils.resolveText(context, token);
-
-        user_adds_header_as("Authorization", "Bearer " + resolvedToken);
+        apiClient.useBearerAuth(context, token);
     }
 
+    @Given("I use basic auth with username {string} and password {string}")
     @And("user uses basic auth with username {string} and password {string}")
     public void user_uses_basic_auth_with_username_and_password(String username, String password) {
 
-        String resolvedUsername = ScenarioContextUtils.resolveText(context, username);
-        String resolvedPassword = ScenarioContextUtils.resolveText(context, password);
-        String credentials = resolvedUsername + ":" + resolvedPassword;
-        String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
+        apiClient.useBasicAuth(context, username, password);
+    }
 
-        user_adds_header_as("Authorization", "Basic " + encodedCredentials);
+    @Given("I use api key {string} in header {string}")
+    public void i_use_api_key_in_header(String apiKey, String headerName) {
+
+        apiClient.useApiKeyAuth(context, headerName, apiKey);
     }
 
     @And("user uses api key header {string} as {string}")
-    public void user_uses_api_key_header_as(String key, String value) {
+    public void user_uses_api_key_header_as(String headerName, String apiKey) {
 
-        user_adds_header_as(key, value);
+        apiClient.useApiKeyAuth(context, headerName, apiKey);
     }
 
     @And("user uses api key query param {string} as {string}")

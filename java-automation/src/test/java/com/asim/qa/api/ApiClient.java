@@ -1,5 +1,7 @@
 package com.asim.qa.api;
 
+import com.asim.qa.auth.AuthManager;
+import com.asim.qa.context.TestContext;
 import com.asim.qa.config.ConfigReader;
 import com.asim.qa.utils.ConsoleLogger;
 import io.restassured.builder.ResponseBuilder;
@@ -35,11 +37,12 @@ public class ApiClient {
     private final Map<String, String> headers = new HashMap<>();
     private final Map<String, String> pathParams = new LinkedHashMap<>();
     private final Map<String, String> queryParams = new LinkedHashMap<>();
+    private final AuthManager authManager = new AuthManager();
     private String baseUrl;
 
     public Map<String, String> getHeaders() {
 
-        return new HashMap<>(headers);
+        return authManager.applyToHeaders(headers);
     }
 
     public Map<String, String> getHeadersSnapshot() {
@@ -65,6 +68,41 @@ public class ApiClient {
     public void addHeader(String key, String value) {
 
         headers.put(key, value);
+    }
+
+    public void clearAuth() {
+
+        authManager.clear();
+    }
+
+    public void useBearerAuth(String token) {
+
+        authManager.useBearerAuth(token);
+    }
+
+    public void useBearerAuth(TestContext context, String token) {
+
+        authManager.useBearerAuth(context, token);
+    }
+
+    public void useBasicAuth(String username, String password) {
+
+        authManager.useBasicAuth(username, password);
+    }
+
+    public void useBasicAuth(TestContext context, String username, String password) {
+
+        authManager.useBasicAuth(context, username, password);
+    }
+
+    public void useApiKeyAuth(String headerName, String apiKey) {
+
+        authManager.useApiKeyAuth(headerName, apiKey);
+    }
+
+    public void useApiKeyAuth(TestContext context, String headerName, String apiKey) {
+
+        authManager.useApiKeyAuth(context, headerName, apiKey);
     }
 
     public void setBaseUrl(String baseUrl) {
@@ -117,6 +155,7 @@ public class ApiClient {
     private RequestSpecification requestSpec(Map<String, String> requestHeaders) {
 
         int timeoutMs = ConfigReader.getApiTimeoutMs();
+        Map<String, String> effectiveHeaders = authManager.applyToHeaders(requestHeaders);
 
         return given()
                 .baseUri(requireBaseUrl())
@@ -126,7 +165,7 @@ public class ApiClient {
                                 .setParam("http.socket.timeout", timeoutMs)
                                 .setParam("http.connection-manager.timeout", (long) timeoutMs)
                 ))
-                .headers(requestHeaders);
+                .headers(effectiveHeaders);
     }
 
     private String requireBaseUrl() {
