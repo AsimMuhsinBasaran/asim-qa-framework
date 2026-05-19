@@ -151,6 +151,7 @@ public class RuntimeContextWriterTest {
                 Map.of()
         );
         Map<String, String> exports = new LinkedHashMap<>();
+        exports.put("orderId", "501");
         exports.put("userId", "1001");
         exports.put("email", "testuser@example.com");
 

@@ -67,3 +67,25 @@ CYPRESS_CONTEXT_FILE=../test-data/runtime/poc-runtime-bridge/cypress-runtime-con
 ```
 
 This POC validates the runtime contract only. It does not test a real application UI.
+
+## Runtime Bridge Smoke Flow
+
+This is the first end-to-end flow that hydrates the Vite demo app from the Java runtime artifact and validates the rendered UI.
+
+Local sequence:
+
+```bash
+mvn test -Dtest=RuntimeContextWriterTest
+cd ui-demo-app
+npm install
+npm run dev
+```
+
+In a second terminal:
+
+```bash
+cd cypress-ui
+npm test -- --browser electron --spec cypress/e2e/runtime-bridge.cy.ts
+```
+
+The UI reads the runtime JSON through the Vite middleware route and Cypress only checks the rendered `data-testid` values. No Cypress-side state injection is used.
