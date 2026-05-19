@@ -13,6 +13,8 @@ reports/*
 !reports/.gitignore
 test-data/runtime/*.json
 test-data/runtime/*.log
+test-data/runtime/*
+!test-data/runtime/README.md
 
 # Cypress workspace outputs
 cypress-ui/node_modules/

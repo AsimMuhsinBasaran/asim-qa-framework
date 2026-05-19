@@ -1,0 +1,7 @@
+{
+  "name": "qa-automation-framework",
+  "private": true,
+  "scripts": {
+    "e2e:runtime-bridge": "node scripts/runtime-bridge-orchestrator.mjs"
+  }
+}
