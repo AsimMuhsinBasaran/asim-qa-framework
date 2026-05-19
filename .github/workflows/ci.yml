@@ -41,6 +41,9 @@ jobs:
       - name: Run Java tests
         run: mvn -B test
 
+      - name: Generate Allure HTML report
+        run: npx --yes allure-commandline generate java-automation/target/allure-results --clean -o java-automation/target/allure-report
+
       - name: Run runtime bridge E2E
         run: npm run e2e:runtime-bridge
 
@@ -55,3 +58,12 @@ jobs:
             java-automation/target/surefire-reports
             java-automation/target/allure-results
             test-data/runtime
+
+      - name: Upload Allure HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-html-report
+          retention-days: 7
+          if-no-files-found: warn
+          path: java-automation/target/allure-report
