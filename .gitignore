@@ -26,6 +26,9 @@ cypress-ui/.nyc_output/
 
 # macOS
 .DS_Store
+web-cypress/
+mock-server/*.jar
 
 # IntelliJ
 .idea/
+.idea/workspace.xml

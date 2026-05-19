@@ -55,7 +55,7 @@ A Java-based QA automation framework focused on API testing with Cucumber BDD, R
 |           `-- test-data/request/   # Request payload templates
 |-- mock-server/
 |   `-- mappings/                    # WireMock stubs
-|-- web-cypress/                     # Cypress examples
+|-- cypress-ui/                      # Cypress + TypeScript UI workspace
 |-- mobile-appium/                   # Mobile automation workspace
 |-- performance-jmeter/              # Performance testing workspace
 `-- pom.xml                          # Maven parent project
