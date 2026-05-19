@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: |
+            ui-demo-app/package-lock.json
+            cypress-ui/package-lock.json
+
+      - name: Install UI demo app dependencies
+        run: npm ci --prefix ui-demo-app
+
+      - name: Install Cypress workspace dependencies
+        run: npm ci --prefix cypress-ui
+
+      - name: Run Java tests
+        run: mvn -B test
+
+      - name: Run runtime bridge E2E
+        run: npm run e2e:runtime-bridge
+
+      - name: Upload CI artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-framework-ci-artifacts
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            java-automation/target/surefire-reports
+            java-automation/target/allure-results
+            test-data/runtime
