@@ -2,6 +2,7 @@
   "name": "qa-automation-framework",
   "private": true,
   "scripts": {
-    "e2e:runtime-bridge": "node scripts/runtime-bridge-orchestrator.mjs"
+    "e2e:runtime-bridge": "node scripts/runtime-bridge-orchestrator.mjs --mode=poc",
+    "e2e:runtime-bridge:api": "node scripts/runtime-bridge-orchestrator.mjs --mode=api"
   }
 }
