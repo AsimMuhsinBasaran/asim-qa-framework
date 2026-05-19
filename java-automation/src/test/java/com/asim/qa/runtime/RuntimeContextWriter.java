@@ -25,7 +25,8 @@ public class RuntimeContextWriter {
             "accountId",
             "resourceId",
             "referenceId",
-            "sessionId"
+            "sessionId",
+            "status"
     );
 
     private static final Pattern INVALID_FILE_CHARS = Pattern.compile("[^a-z0-9-]+");
