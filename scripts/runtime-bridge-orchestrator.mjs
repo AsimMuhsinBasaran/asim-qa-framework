@@ -14,6 +14,9 @@ const runtimeRoutePath = '/test-data/runtime/poc-runtime-bridge/cypress-runtime-
 
 const FLOW_DESCRIPTORS = {
   poc: {
+    mode: 'poc',
+    name: 'POC runtime bridge',
+    needsVite: false,
     javaTestClass: 'RuntimeContextWriterTest',
     runtimeArtifactPath: path.join(
       repoRoot,
@@ -26,6 +29,9 @@ const FLOW_DESCRIPTORS = {
     uiRuntimeArtifactPath: null
   },
   api: {
+    mode: 'api',
+    name: 'API runtime bridge',
+    needsVite: true,
     javaTestClass: 'ApiRuntimeBridgeExportTest',
     runtimeArtifactPath: path.join(
       repoRoot,
@@ -288,7 +294,7 @@ async function runFlow(flow) {
   try {
     let uiBaseUrl = 'http://127.0.0.1:5173';
 
-    if (flow.uiRuntimeArtifactPath) {
+    if (flow.needsVite) {
       const port = await findFreePort();
       viteProcess = await startViteServer(port);
       uiBaseUrl = `http://127.0.0.1:${port}`;
@@ -300,7 +306,7 @@ async function runFlow(flow) {
       CYPRESS_CONTEXT_FILE: path.relative(cypressUiDir, flow.runtimeArtifactPath)
     };
 
-    if (flow.uiRuntimeArtifactPath) {
+    if (flow.needsVite) {
       cypressEnv.UI_BASE_URL = uiBaseUrl;
     } else {
       delete cypressEnv.UI_BASE_URL;
