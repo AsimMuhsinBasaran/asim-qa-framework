@@ -25,7 +25,7 @@ const FLOW_DESCRIPTORS = {
       'poc-runtime-bridge',
       'cypress-runtime-context-poc-REQ-POC-001.json'
     ),
-    cypressSpec: 'cypress/e2e/runtime-context.cy.ts',
+    cypressSpec: 'cypress/e2e/bridge/runtime-context.cy.ts',
     uiRuntimeArtifactPath: null
   },
   api: {
@@ -40,7 +40,7 @@ const FLOW_DESCRIPTORS = {
       'api-runtime-bridge',
       'api-runtime-bridge-export-from-order-creation-REQ-API-BRIDGE-001.json'
     ),
-    cypressSpec: 'cypress/e2e/runtime-bridge.cy.ts',
+    cypressSpec: 'cypress/e2e/bridge/runtime-bridge.cy.ts',
     uiRuntimeArtifactPath: path.join(
       repoRoot,
       'test-data',

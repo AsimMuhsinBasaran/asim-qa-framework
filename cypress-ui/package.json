@@ -6,7 +6,8 @@
   "scripts": {
     "test": "cypress run",
     "test:open": "cypress open",
-    "test:headed": "cypress run --headed"
+    "test:headed": "cypress run --headed --spec cypress/e2e/demo/demo-shop.cy.ts",
+    "test:demo": "cypress run --spec cypress/e2e/demo/demo-shop.cy.ts"
   },
   "devDependencies": {
     "@types/node": "^22.15.29",

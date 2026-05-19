@@ -29,6 +29,7 @@ npm install
 npm test
 npm run test:open
 npm run test:headed
+npm run test:demo
 ```
 
 ## Runtime Context Bridge
@@ -51,8 +52,8 @@ If the file does not exist, the reader returns an empty context and a controlled
 
 ## Current status
 
-There are no real application UI flows here yet.
-The initial smoke spec only verifies that Cypress starts and that the runtime context reader behaves safely when the file is missing.
+The workspace now includes a deterministic demo-shop flow plus runtime bridge coverage.
+The bridge specs live under `cypress/e2e/bridge/` and the demo-shop spec lives under `cypress/e2e/demo/`.
 
 ## Runtime Context Consumption POC
 
@@ -63,7 +64,7 @@ Example flow:
 ```bash
 mvn test -Dtest=RuntimeContextWriterTest
 cd cypress-ui
-CYPRESS_CONTEXT_FILE=../test-data/runtime/poc-runtime-bridge/cypress-runtime-context-poc-REQ-POC-001.json npm test -- --browser electron
+CYPRESS_CONTEXT_FILE=../test-data/runtime/poc-runtime-bridge/cypress-runtime-context-poc-REQ-POC-001.json npm test -- --browser electron --spec cypress/e2e/bridge/runtime-context.cy.ts
 ```
 
 This POC validates the runtime contract only. It does not test a real application UI.
@@ -85,7 +86,7 @@ In a second terminal:
 
 ```bash
 cd cypress-ui
-npm test -- --browser electron --spec cypress/e2e/runtime-bridge.cy.ts
+npm run test:demo
 ```
 
 The UI reads the runtime JSON through the Vite middleware route and Cypress only checks the rendered `data-testid` values. No Cypress-side state injection is used.
