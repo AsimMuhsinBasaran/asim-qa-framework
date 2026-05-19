@@ -13,13 +13,13 @@ export default defineConfig({
           overridePath?: string
         ): RuntimeContextResult {
           return readRuntimeContext({
-            contextFilePath: overridePath ?? config.env.RUNTIME_CONTEXT_FILE,
+            contextFilePath: overridePath ?? config.env.CYPRESS_CONTEXT_FILE,
             cwd: config.projectRoot
           });
         }
       });
 
-      config.env.RUNTIME_CONTEXT_FILE = config.env.RUNTIME_CONTEXT_FILE || process.env.RUNTIME_CONTEXT_FILE || '';
+      config.env.CYPRESS_CONTEXT_FILE = config.env.CYPRESS_CONTEXT_FILE || process.env.CYPRESS_CONTEXT_FILE || '';
       return config;
     }
   }

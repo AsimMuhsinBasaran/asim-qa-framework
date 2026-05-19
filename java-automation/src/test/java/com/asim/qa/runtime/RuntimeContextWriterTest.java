@@ -135,6 +135,35 @@ public class RuntimeContextWriterTest {
         Assert.assertTrue(Files.exists(writtenFile));
     }
 
+    @Test
+    public void should_write_runtime_context_for_cypress_consumption() throws IOException {
+
+        Path rootRuntimeDirectory = Path.of("..", "test-data", "runtime").normalize();
+        RuntimeContextWriter writer = new RuntimeContextWriter(rootRuntimeDirectory);
+        RuntimeContext context = new RuntimeContext(
+                "poc-runtime-bridge",
+                "mock",
+                "Cypress runtime context POC",
+                "REQ-POC-001",
+                "2026-05-18T18:30:00+03:00",
+                "api",
+                "java-automation",
+                Map.of()
+        );
+        Map<String, String> exports = new LinkedHashMap<>();
+        exports.put("userId", "1001");
+        exports.put("email", "testuser@example.com");
+
+        Path expectedFile = Path.of("..", "test-data", "runtime", "poc-runtime-bridge", "cypress-runtime-context-poc-REQ-POC-001.json").normalize();
+        Files.deleteIfExists(expectedFile);
+
+        Path writtenFile = writer.write(context, exports);
+
+        Assert.assertEquals(writtenFile, expectedFile);
+        Assert.assertTrue(Files.exists(writtenFile));
+        System.out.println("Runtime context written to: " + writtenFile.toAbsolutePath());
+    }
+
     private RuntimeContext baseContext() {
 
         return new RuntimeContext(

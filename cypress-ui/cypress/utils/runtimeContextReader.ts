@@ -40,7 +40,7 @@ const EMPTY_CONTEXT: RuntimeContext = {
 };
 
 export function resolveRuntimeContextPath(options: ReadRuntimeContextOptions = {}): string {
-  const rawPath = options.contextFilePath?.trim() || process.env.RUNTIME_CONTEXT_FILE?.trim() || '../test-data/runtime/context.json';
+  const rawPath = options.contextFilePath?.trim() || process.env.CYPRESS_CONTEXT_FILE?.trim() || '../test-data/runtime/context.json';
   const baseDir = options.cwd ?? process.cwd();
 
   return path.isAbsolute(rawPath) ? rawPath : path.resolve(baseDir, rawPath);

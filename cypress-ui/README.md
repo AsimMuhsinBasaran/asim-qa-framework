@@ -44,7 +44,7 @@ Default path:
 You can override it with:
 
 ```bash
-RUNTIME_CONTEXT_FILE=/path/to/context.json npm test
+CYPRESS_CONTEXT_FILE=/path/to/context.json npm test
 ```
 
 If the file does not exist, the reader returns an empty context and a controlled warning instead of failing the spec.
@@ -53,3 +53,17 @@ If the file does not exist, the reader returns an empty context and a controlled
 
 There are no real application UI flows here yet.
 The initial smoke spec only verifies that Cypress starts and that the runtime context reader behaves safely when the file is missing.
+
+## Runtime Context Consumption POC
+
+Java can generate a scenario-based runtime artifact with `RuntimeContextWriter`, and Cypress can read it as a contract file.
+
+Example flow:
+
+```bash
+mvn test -Dtest=RuntimeContextWriterTest
+cd cypress-ui
+CYPRESS_CONTEXT_FILE=../test-data/runtime/poc-runtime-bridge/cypress-runtime-context-poc-REQ-POC-001.json npm test -- --browser electron
+```
+
+This POC validates the runtime contract only. It does not test a real application UI.
