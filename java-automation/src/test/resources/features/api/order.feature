@@ -3,7 +3,7 @@ Feature: Order API - E2E Flows
   @mock @e2e
   Scenario: User places an order successfully
     Given base url is configured
-    And user adds header "Authorization" as "Bearer valid-test-token"
+    And user uses valid mock bearer auth
     When user loads json file "order/create-order.json"
     And user sends "POST" request to "/orders" with loaded body
     Then response status code should be 201
@@ -17,7 +17,7 @@ Feature: Order API - E2E Flows
   @mock @e2e
   Scenario: User views their order
     Given base url is configured
-    And user adds header "Authorization" as "Bearer valid-test-token"
+    And user uses valid mock bearer auth
     And user sends "GET" request to "/orders/501"
     Then response status code should be 200
     And response field "orderId" should be "501"
@@ -28,7 +28,7 @@ Feature: Order API - E2E Flows
   @mock @e2e
   Scenario: Order fails when product is out of stock
     Given base url is configured
-    And user adds header "Authorization" as "Bearer valid-test-token"
+    And user uses valid mock bearer auth
     When user loads json file "order/create-order-out-of-stock.json"
     And user sends "POST" request to "/orders" with loaded body
     Then response status code should be 422
@@ -38,7 +38,7 @@ Feature: Order API - E2E Flows
   @mock @e2e
   Scenario: Order fails when cart is empty
     Given base url is configured
-    And user adds header "Authorization" as "Bearer valid-test-token"
+    And user uses valid mock bearer auth
     When user loads json file "order/create-order-empty-cart.json"
     And user sends "POST" request to "/orders" with loaded body
     Then response status code should be 400
@@ -48,7 +48,7 @@ Feature: Order API - E2E Flows
   @mock @e2e
   Scenario: Cancel an existing order
     Given base url is configured
-    And user adds header "Authorization" as "Bearer valid-test-token"
+    And user uses valid mock bearer auth
     When user loads json file "order/cancel-order.json"
     And user sends "PUT" request to "/orders/501/cancel" with loaded body
     Then response status code should be 200
@@ -58,7 +58,7 @@ Feature: Order API - E2E Flows
   @mock @e2e
   Scenario: Cannot cancel an already delivered order
     Given base url is configured
-    And user adds header "Authorization" as "Bearer valid-test-token"
+    And user uses valid mock bearer auth
     And user sends "PUT" request to "/orders/502/cancel" with loaded body
     Then response status code should be 409
     And response field "error" should be "Cannot cancel a delivered order"
@@ -67,7 +67,7 @@ Feature: Order API - E2E Flows
   @mock @e2e
   Scenario: Get all orders for user
     Given base url is configured
-    And user adds header "Authorization" as "Bearer valid-test-token"
+    And user uses valid mock bearer auth
     And user sends "GET" request to "/orders"
     Then response status code should be 200
     And response array "orders" size should be 2
@@ -87,7 +87,7 @@ Feature: Order API - E2E Flows
     And user saves response field "id" as "userId"
     # Step 2: Place order with saved token
     Given base url is configured
-    And user adds header "Authorization" as "Bearer {authToken}"
+    And user uses saved bearer auth "authToken"
     When user loads json file "order/create-order.json"
     And user updates request field "userId" as "{userId}"
     And user sends "POST" request to "/orders" with loaded body

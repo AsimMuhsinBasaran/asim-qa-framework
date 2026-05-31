@@ -3,7 +3,7 @@ Feature: Product API
   @mock @e2e
   Scenario: Get all products successfully
     Given base url is configured
-    And user adds header "Authorization" as "Bearer valid-test-token"
+    And user uses valid mock bearer auth
     And user sends "GET" request to "/products"
     Then response status code should be 200
     And response array "products" size should be 3
@@ -14,7 +14,7 @@ Feature: Product API
   @mock @e2e
   Scenario: Get single product by id
     Given base url is configured
-    And user adds header "Authorization" as "Bearer valid-test-token"
+    And user uses valid mock bearer auth
     And user sends "GET" request to "/products/1"
     Then response status code should be 200
     And response field "id" should be "1"
@@ -25,7 +25,7 @@ Feature: Product API
   @mock @e2e
   Scenario: Get product fails when not found
     Given base url is configured
-    And user adds header "Authorization" as "Bearer valid-test-token"
+    And user uses valid mock bearer auth
     And user sends "GET" request to "/products/999"
     Then response status code should be 404
     And response field "error" should be "Product not found"
@@ -34,7 +34,7 @@ Feature: Product API
   @mock @e2e
   Scenario: Create product successfully
     Given base url is configured
-    And user adds header "Authorization" as "Bearer valid-test-token"
+    And user uses valid mock bearer auth
     When user loads json file "product/create-product.json"
     And user sends "POST" request to "/products" with loaded body
     Then response status code should be 201
@@ -46,7 +46,7 @@ Feature: Product API
   @mock @e2e
   Scenario: Create product fails when price is missing
     Given base url is configured
-    And user adds header "Authorization" as "Bearer valid-test-token"
+    And user uses valid mock bearer auth
     When user loads json file "product/create-product.json"
     And user updates request field "price" as ""
     And user sends "POST" request to "/products" with loaded body
@@ -57,7 +57,7 @@ Feature: Product API
   @mock @e2e
   Scenario: Update product stock successfully
     Given base url is configured
-    And user adds header "Authorization" as "Bearer valid-test-token"
+    And user uses valid mock bearer auth
     When user loads json file "product/update-stock.json"
     And user sends "PUT" request to "/products/1/stock" with loaded body
     Then response status code should be 200
@@ -67,7 +67,7 @@ Feature: Product API
   @mock @e2e
   Scenario: Delete product successfully
     Given base url is configured
-    And user adds header "Authorization" as "Bearer valid-test-token"
+    And user uses valid mock bearer auth
     And user sends "DELETE" request to "/products/1"
     Then response status code should be 204
 

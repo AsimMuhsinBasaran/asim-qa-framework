@@ -71,6 +71,24 @@ public class ApiSteps {
         apiClient.useBearerAuth(context, token);
     }
 
+    @And("user uses valid mock bearer auth")
+    public void user_uses_valid_mock_bearer_auth() {
+
+        user_uses_bearer_token("valid-test-token");
+    }
+
+    @And("user uses generic mock bearer auth")
+    public void user_uses_generic_mock_bearer_auth() {
+
+        user_uses_bearer_token("test-token");
+    }
+
+    @And("user uses saved bearer auth {string}")
+    public void user_uses_saved_bearer_auth(String variableName) {
+
+        user_uses_bearer_token("{" + variableName + "}");
+    }
+
     @Given("I use basic auth with username {string} and password {string}")
     @And("user uses basic auth with username {string} and password {string}")
     public void user_uses_basic_auth_with_username_and_password(String username, String password) {
