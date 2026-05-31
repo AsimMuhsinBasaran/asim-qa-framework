@@ -2,10 +2,18 @@ package com.asim.qa.runtime.bridge;
 
 import com.asim.qa.runtime.RuntimeContext;
 import com.asim.qa.runtime.RuntimeContextWriter;
+import com.asim.qa.utils.ConsoleLogger;
 import com.asim.qa.utils.JsonUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
+import io.qameta.allure.Allure;
+import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+import io.qameta.allure.Story;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import org.testng.Assert;
@@ -21,6 +29,8 @@ import java.util.Map;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static io.restassured.RestAssured.given;
 
+@Epic("Runtime Bridge")
+@Feature("API Runtime Context Export")
 public class ApiRuntimeBridgeExportTest {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
@@ -33,6 +43,9 @@ public class ApiRuntimeBridgeExportTest {
             .resolve("api-runtime-bridge-export-from-order-creation-REQ-API-BRIDGE-001.json");
 
     @Test
+    @Story("Export API response fields for Cypress consumption")
+    @Severity(SeverityLevel.CRITICAL)
+    @Description("Verifies the Java-side runtime export contract for Cypress consumption. This is not a full Cypress E2E validation.")
     public void should_export_runtime_context_from_actual_mock_api_response() throws IOException {
 
         Files.deleteIfExists(EXPECTED_FILE);
@@ -96,10 +109,36 @@ public class ApiRuntimeBridgeExportTest {
             Assert.assertEquals(root.get("exports").get("orderId").asText(), "501");
             Assert.assertEquals(root.get("exports").get("status").asText(), "PENDING");
 
-            System.out.println("Runtime context written to: " + writtenFile.toAbsolutePath());
-            System.out.println("Extracted response fields: userId=" + userId + ", orderId=" + orderId + ", status=" + status);
+            String artifactPath = toRepoRelativePath(writtenFile);
+            Allure.addAttachment("Runtime bridge export summary", "text/plain", buildExportSummary(runtimeContext, artifactPath, exports));
+            ConsoleLogger.info("Runtime Bridge Export", "artifact=" + artifactPath + ", exportedKeys=" + exports.keySet());
         } finally {
             server.stop();
         }
+    }
+
+    private static String buildExportSummary(RuntimeContext runtimeContext,
+                                             String artifactPath,
+                                             Map<String, String> exports) {
+
+        return "scenarioName=" + runtimeContext.getScenarioName() + System.lineSeparator() +
+                "runId=" + runtimeContext.getRunId() + System.lineSeparator() +
+                "requestId=" + runtimeContext.getRequestId() + System.lineSeparator() +
+                "env=" + runtimeContext.getEnv() + System.lineSeparator() +
+                "layer=" + runtimeContext.getLayer() + System.lineSeparator() +
+                "source=" + runtimeContext.getSource() + System.lineSeparator() +
+                "artifactPath=" + artifactPath + System.lineSeparator() +
+                "exportedKeys=" + exports.keySet() + System.lineSeparator() +
+                "exportedValueCount=" + exports.size();
+    }
+
+    private static String toRepoRelativePath(Path writtenFile) {
+
+        Path normalizedPath = writtenFile.normalize();
+        if (normalizedPath.getNameCount() > 1 && "..".equals(normalizedPath.getName(0).toString())) {
+            return normalizedPath.subpath(1, normalizedPath.getNameCount()).toString();
+        }
+
+        return normalizedPath.toString();
     }
 }
