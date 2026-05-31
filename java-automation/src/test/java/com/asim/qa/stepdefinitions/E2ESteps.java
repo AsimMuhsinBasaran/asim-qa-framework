@@ -73,7 +73,7 @@ public class E2ESteps {
 
         AssertionUtils.assertFieldNotNull(variableName, value);
 
-        ConsoleLogger.pass("Saved value '" + variableName + "' is not null: " + value);
+        ConsoleLogger.pass("Saved value '" + variableName + "' is not null: " + SensitiveDataMasker.mask(variableName, value));
     }
 
     /**
@@ -89,7 +89,7 @@ public class E2ESteps {
 
         AssertionUtils.assertField(actualValue, expectedValue, variableName);
 
-        ConsoleLogger.pass("Saved value '" + variableName + "' = " + actualValue);
+        ConsoleLogger.pass("Saved value '" + variableName + "' = " + SensitiveDataMasker.mask(variableName, actualValue));
     }
 
     // ────────────────────────────────────────────────────────────────────────────
@@ -115,7 +115,7 @@ public class E2ESteps {
                 JsonUtils.updateJsonField(context.getRequestBody(), fieldKey, resolvedValue)
         );
 
-        ConsoleLogger.info("Updated Field (from context)", fieldKey + " = " + resolvedValue);
+        ConsoleLogger.info("Updated Field (from context)", fieldKey + " = " + SensitiveDataMasker.mask(fieldKey, resolvedValue));
         AllureUtils.attachRequest("Updated Request Body", context.getRequestBody());
     }
 
