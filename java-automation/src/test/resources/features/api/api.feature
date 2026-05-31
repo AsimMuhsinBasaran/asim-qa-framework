@@ -62,7 +62,7 @@ Feature: API Tests
   Scenario: Create post with nested json field
     Given base url is configured
     And user adds header "client-id" as "mobile"
-    And user adds header "Authorization" as "Bearer test-token"
+    And user uses generic mock bearer auth
     When user loads json file "create-post-nested.json"
     And user updates request field "customer.profile.name" as "Asim Basaran"
     And user sends POST request to "/posts" with loaded body
@@ -86,7 +86,7 @@ Feature: API Tests
   Scenario: Generic POST request test
     Given base url is configured
     And user adds header "client-id" as "mobile"
-    And user adds header "Authorization" as "Bearer test-token"
+    And user uses generic mock bearer auth
     When user loads json file "create-post-nested.json"
     And user updates request field "customer.profile.name" as "Asim Basaran"
     And user sends "POST" request to "/posts" with loaded body

@@ -60,7 +60,7 @@ Feature: Authentication API
   @mock @e2e
   Scenario: Get current user profile with valid token
     Given base url is configured
-    And user adds header "Authorization" as "Bearer valid-test-token"
+    And user uses valid mock bearer auth
     And user sends "GET" request to "/auth/me"
     Then response status code should be 200
     And response field "id" should not be null
