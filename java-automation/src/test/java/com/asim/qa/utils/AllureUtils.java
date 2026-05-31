@@ -30,7 +30,6 @@ public class AllureUtils {
 
         List<String> lines = new ArrayList<>();
         lines.add("Environment=" + ConfigReader.getActiveEnv());
-        lines.add("BaseUrl=" + ConfigReader.getBaseUrl());
         lines.add("JavaVersion=" + System.getProperty("java.version", "unknown"));
         lines.add("OS=" + System.getProperty("os.name", "unknown"));
         lines.add("RunnerClass=" + System.getProperty("runner.class", "ApiTestRunner"));
