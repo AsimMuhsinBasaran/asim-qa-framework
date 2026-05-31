@@ -5,7 +5,8 @@ import java.util.regex.Pattern;
 public final class SensitiveDataMasker {
 
     private static final String MASK = "***MASKED***";
-    private static final String SENSITIVE_KEYS = "password|passwd|pwd|token|access_token|refresh_token|id_token|apiKey|api_key|clientSecret|client_secret|secret";
+    private static final String SENSITIVE_FIELD_KEYS = "password|passwd|pwd|token|access_token|refresh_token|id_token|apiKey|api_key|clientSecret|client_secret|secret|sessionId|session_id|set-cookie|cookie";
+    private static final String SENSITIVE_KEYS = "authorization|" + SENSITIVE_FIELD_KEYS;
 
     private static final Pattern AUTHORIZATION_HEADER_PATTERN = Pattern.compile(
             "(?i)(\\bAuthorization\\s*[:=]\\s*Bearer\\s+)([^,}\\]\\s]+)"
@@ -13,17 +14,20 @@ public final class SensitiveDataMasker {
     private static final Pattern BASIC_AUTHORIZATION_HEADER_PATTERN = Pattern.compile(
             "(?i)(\\bAuthorization\\s*[:=]\\s*Basic\\s+)([^,}\\]\\s]+)"
     );
+    private static final Pattern COOKIE_HEADER_PATTERN = Pattern.compile(
+            "(?i)(\\b(?:Set-Cookie|Cookie)\\s*[:=]\\s*)([^\\r\\n]+)"
+    );
     private static final Pattern BEARER_PATTERN = Pattern.compile(
             "(?i)(\\bBearer\\s+)([^,}\\]\\s]+)"
     );
     private static final Pattern JSON_STRING_FIELD_PATTERN = Pattern.compile(
-            "(?i)(\"(?:" + SENSITIVE_KEYS + ")\"\\s*:\\s*\")([^\"]*)(\")"
+            "(?i)(\"(?:" + SENSITIVE_FIELD_KEYS + ")\"\\s*:\\s*\")([^\"]*)(\")"
     );
     private static final Pattern JSON_NON_STRING_FIELD_PATTERN = Pattern.compile(
-            "(?i)(\"(?:" + SENSITIVE_KEYS + ")\"\\s*:\\s*)([^,}\\]\\s\"]+)"
+            "(?i)(\"(?:" + SENSITIVE_FIELD_KEYS + ")\"\\s*:\\s*)([^,}\\]\\s\"]+)"
     );
     private static final Pattern KEY_VALUE_PATTERN = Pattern.compile(
-            "(?i)((?<!\")\\b[A-Za-z0-9_.-]*(?:" + SENSITIVE_KEYS + ")[A-Za-z0-9_.-]*\\s*[:=]\\s*)(\"?)([^,}\\]\\s\"]+)(\"?)"
+            "(?i)((?<!\")\\b[A-Za-z0-9_.-]*(?:" + SENSITIVE_FIELD_KEYS + ")[A-Za-z0-9_.-]*\\s*[:=]\\s*)(\"?)([^,}\\]\\s\"]+)(\"?)"
     );
     private static final Pattern SENSITIVE_KEY_PATTERN = Pattern.compile(
             "(?i).*(?:" + SENSITIVE_KEYS + ").*"
@@ -40,6 +44,7 @@ public final class SensitiveDataMasker {
 
         String masked = maskPattern(input, AUTHORIZATION_HEADER_PATTERN, "$1" + MASK);
         masked = maskPattern(masked, BASIC_AUTHORIZATION_HEADER_PATTERN, "$1" + MASK);
+        masked = maskPattern(masked, COOKIE_HEADER_PATTERN, "$1" + MASK);
         masked = maskPattern(masked, BEARER_PATTERN, "$1" + MASK);
         masked = maskPattern(masked, JSON_STRING_FIELD_PATTERN, "$1" + MASK + "$3");
         masked = maskPattern(masked, JSON_NON_STRING_FIELD_PATTERN, "$1\"" + MASK + "\"");
