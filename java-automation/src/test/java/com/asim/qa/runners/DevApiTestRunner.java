@@ -16,13 +16,12 @@ import org.testng.annotations.DataProvider;
                 "json:target/dev-cucumber.json",
                 "io.qameta.allure.cucumber7jvm.AllureCucumber7Jvm"
         },
-        tags = "@dev",
         monochrome = true
 )
 public class DevApiTestRunner extends AbstractTestNGCucumberTests {
 
     @Override
-    @DataProvider(parallel = true)
+    @DataProvider(parallel = false)
     public Object[][] scenarios() {
         return super.scenarios();
     }

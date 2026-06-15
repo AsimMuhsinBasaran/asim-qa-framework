@@ -31,7 +31,7 @@ A Java-based QA automation framework focused on API testing with Cucumber BDD, R
 - JSON field, array, response time, and schema assertions
 - Sensitive data masking for tokens, passwords, API keys, secrets, and authorization headers
 - Scenario-aware console logging with thread and scenario prefix
-- 2-thread parallel mock execution through TestNG DataProvider
+- 5-thread parallel mock execution through TestNG DataProvider
 - Allure attachments for requests and responses
 
 ## Project Structure
@@ -72,6 +72,8 @@ A Java-based QA automation framework focused on API testing with Cucumber BDD, R
 
 The repository is intentionally organized as a unified QA ecosystem rather than a set of disconnected test projects.
 
+The Java Selenium UI package currently contains only skeleton classes; the active Java automation layer is the API framework.
+
 ## How to Run Tests
 
 Compile test sources without executing tests:
@@ -87,21 +89,36 @@ mvn test
 ```
 
 The default Maven test run executes `ApiTestRunner`, which targets the mock suite. WireMock is started and stopped by Cucumber hooks during the run.
+Execution is controlled by Maven Surefire and the Cucumber TestNG runner; there is no source `testng.xml` suite file.
 
 ### Run Matrix
 
 - `env` selects the active environment configuration.
 - `cucumber.filter.tags` selects the Cucumber scenario scope.
 - `runner.class` selects which runner class Surefire includes.
-- The default behavior is the mock suite.
-- The dev suite is intended for separate smoke scenarios.
+- `dataproviderthreadcount` controls TestNG Cucumber scenario parallelism.
+- The default behavior is the mock E2E API suite: `@mock and @e2e`.
+- `@api` marks the mock-backed API feature set.
+- `@dev` is reserved for the dev smoke scenario and should be run with `env=dev`.
+- Runner classes do not own tag selection; pass tags with `cucumber.filter.tags`.
+- Java UI runners are planned only; no `UiTestRunner` or `E2ETestRunner` source class exists yet.
 
 ```bash
 mvn test
 mvn test -Denv=mock
 mvn test -Denv=mock -Dcucumber.filter.tags="@mock and @e2e"
-mvn test -Denv=dev -Drunner.class=DevApiTestRunner -Dcucumber.filter.tags="@dev"
+mvn test -pl java-automation -Dcucumber.filter.tags="@api"
+mvn test -pl java-automation -Denv=dev -Dcucumber.filter.tags="@dev"
+mvn test -pl java-automation -Denv=dev -Drunner.class=DevApiTestRunner -Dcucumber.filter.tags="@dev"
+mvn test -pl java-automation -Ddataproviderthreadcount=1
 mvn test -Drunner.class=ApiTestRunner
+```
+
+Retry and polling defaults can be overridden with Maven system properties when needed:
+
+```bash
+mvn test -pl java-automation -Dapi.retry.maxAttempts=3 -Dapi.retry.delayMs=1000
+mvn test -pl java-automation -Dapi.polling.maxAttempts=3 -Dapi.polling.delayMs=1000
 ```
 
 ## Example Gherkin Scenarios
@@ -167,7 +184,11 @@ java-automation/target/cucumber.json
 
 ## Parallel Execution
 
-`ApiTestRunner` uses a TestNG DataProvider with parallel execution enabled. Maven Surefire is configured with a data provider thread count of 2, so mock scenarios can run concurrently in two TestNG worker threads.
+`ApiTestRunner` uses a TestNG DataProvider with parallel execution enabled. Maven Surefire is configured with a data provider thread count of 5 by default, so mock scenarios can run concurrently in five TestNG worker threads. Override it with `-Ddataproviderthreadcount=1` when investigating shared-state or environment issues.
+
+`DevApiTestRunner` is an optional non-parallel dev smoke runner. Use it together with `-Dcucumber.filter.tags="@dev"` because Maven Surefire passes tag selection through the `cucumber.filter.tags` system property.
+
+Parallel mock execution depends on scenario-scoped Cucumber objects, per-scenario API client state, and a single WireMock server on the configured mock port. Runtime exports and any future shared external systems should be treated as parallel-sensitive.
 
 Console logs include both thread and scenario context:
 

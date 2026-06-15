@@ -1,5 +1,7 @@
 package com.asim.qa.retry;
 
+import com.asim.qa.config.ConfigReader;
+
 public final class RetryPolicy {
 
     private static final int DEFAULT_MAX_RETRY_COUNT = 2;
@@ -29,7 +31,10 @@ public final class RetryPolicy {
 
     public static RetryPolicy defaultPolicy() {
 
-        return new RetryPolicy();
+        int maxAttempts = ConfigReader.getApiRetryMaxAttempts();
+        int maxRetryCount = maxAttempts - 1;
+
+        return new RetryPolicy(maxRetryCount, ConfigReader.getApiRetryDelayMs());
     }
 
     public int getMaxRetryCount() {

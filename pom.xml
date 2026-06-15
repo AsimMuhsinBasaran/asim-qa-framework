@@ -59,6 +59,12 @@
             </dependency>
 
             <dependency>
+                <groupId>io.cucumber</groupId>
+                <artifactId>cucumber-picocontainer</artifactId>
+                <version>${cucumber.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>io.qameta.allure</groupId>
                 <artifactId>allure-testng</artifactId>
                 <version>${allure.version}</version>
@@ -73,6 +79,12 @@
             <dependency>
                 <groupId>io.rest-assured</groupId>
                 <artifactId>rest-assured</artifactId>
+                <version>${restassured.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.rest-assured</groupId>
+                <artifactId>json-schema-validator</artifactId>
                 <version>${restassured.version}</version>
             </dependency>
 

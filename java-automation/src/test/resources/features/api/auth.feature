@@ -1,3 +1,4 @@
+@api
 Feature: Authentication API
 
   @mock @e2e

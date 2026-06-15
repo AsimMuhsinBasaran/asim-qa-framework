@@ -1,9 +1,10 @@
+@api
 Feature: API Tests
 
   @mock
   Scenario: Get post successfully
     Given base url is configured
-    When user sends GET request to "/posts/1"
+    When user sends "GET" request to "/posts/1"
     Then response status code should be 200
     And response field "id" should be "1"
     And response field "userId" should not be null
@@ -12,7 +13,7 @@ Feature: API Tests
   @mock
   Scenario: Create post successfully
     Given base url is configured
-    When user sends POST request to "/posts" with body
+    When user sends "POST" request to "/posts" with body
     """
     {
       "title": "test title",
@@ -28,7 +29,7 @@ Feature: API Tests
   @mock
   Scenario: Create post should fail when title is missing
     Given base url is configured
-    When user sends POST request to "/posts" with body
+    When user sends "POST" request to "/posts" with body
     """
     {
       "body": "test body",
@@ -42,7 +43,8 @@ Feature: API Tests
   @mock
   Scenario: Create post with json file
     Given base url is configured
-    When user sends POST request to "/posts" with json file "create-post.json"
+    When user loads json file "create-post.json"
+    And user sends "POST" request to "/posts" with loaded body
     Then response status code should be 201
     And response field "userId" should be "99"
     And response field "title" should not be null
@@ -53,7 +55,7 @@ Feature: API Tests
     When user loads json file "create-post.json"
     And user updates request field "title" as "Asim Dynamic Title"
     And user updates request field "userId" as "777"
-    And user sends POST request to "/posts" with loaded body
+    And user sends "POST" request to "/posts" with loaded body
     Then response status code should be 201
     And response field "userId" should be "777"
     And response field "title" should be "Asim Dynamic Title"
@@ -65,7 +67,7 @@ Feature: API Tests
     And user uses generic mock bearer auth
     When user loads json file "create-post-nested.json"
     And user updates request field "customer.profile.name" as "Asim Basaran"
-    And user sends POST request to "/posts" with loaded body
+    And user sends "POST" request to "/posts" with loaded body
     Then response status code should be 201
     And response field "customerName" should be "Asim Basaran"
     And response field "customerName" should contain "Asim"

@@ -17,11 +17,13 @@ import io.qameta.allure.Story;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Comparator;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -34,7 +36,7 @@ import static io.restassured.RestAssured.given;
 public class ApiRuntimeBridgeExportTest {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    private static final Path RUNTIME_ROOT_DIRECTORY = Path.of("..", "test-data", "runtime").normalize();
+    private static final Path RUNTIME_ROOT_DIRECTORY = Path.of("target", "runtime-test").normalize();
     private static final String RUN_ID = "api-runtime-bridge";
     private static final String REQUEST_ID = "REQ-API-BRIDGE-001";
     private static final String SCENARIO_NAME = "API runtime bridge export from order creation";
@@ -42,13 +44,17 @@ public class ApiRuntimeBridgeExportTest {
             .resolve(RUN_ID)
             .resolve("api-runtime-bridge-export-from-order-creation-REQ-API-BRIDGE-001.json");
 
+    @BeforeMethod
+    public void cleanRuntimeBridgeOutput() throws IOException {
+
+        deleteRecursively(RUNTIME_ROOT_DIRECTORY.resolve(RUN_ID));
+    }
+
     @Test
     @Story("Export API response fields for Cypress consumption")
     @Severity(SeverityLevel.CRITICAL)
     @Description("Verifies the Java-side runtime export contract for Cypress consumption. This is not a full Cypress E2E validation.")
     public void should_export_runtime_context_from_actual_mock_api_response() throws IOException {
-
-        Files.deleteIfExists(EXPECTED_FILE);
 
         WireMockServer server = new WireMockServer(
                 options()
@@ -140,5 +146,26 @@ public class ApiRuntimeBridgeExportTest {
         }
 
         return normalizedPath.toString();
+    }
+
+    private static void deleteRecursively(Path path) throws IOException {
+
+        if (!Files.exists(path)) {
+            return;
+        }
+
+        try (var paths = Files.walk(path)) {
+            paths.sorted(Comparator.reverseOrder())
+                    .forEach(ApiRuntimeBridgeExportTest::deletePath);
+        }
+    }
+
+    private static void deletePath(Path path) {
+
+        try {
+            Files.deleteIfExists(path);
+        } catch (IOException e) {
+            throw new RuntimeException("Runtime bridge test artifact could not be deleted: " + path, e);
+        }
     }
 }

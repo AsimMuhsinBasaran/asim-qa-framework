@@ -1,3 +1,4 @@
+@api
 Feature: Product API
 
   @mock @e2e
