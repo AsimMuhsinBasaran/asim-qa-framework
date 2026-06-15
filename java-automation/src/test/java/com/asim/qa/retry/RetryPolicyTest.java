@@ -24,6 +24,23 @@ public class RetryPolicyTest {
     }
 
     @Test
+    public void should_read_default_policy_from_config_properties() {
+
+        System.setProperty("api.retry.maxAttempts", "4");
+        System.setProperty("api.retry.delayMs", "250");
+
+        try {
+            RetryPolicy policy = RetryPolicy.defaultPolicy();
+
+            Assert.assertEquals(policy.getMaxRetryCount(), 3);
+            Assert.assertEquals(policy.getRetryDelayMillis(), 250L);
+        } finally {
+            System.clearProperty("api.retry.maxAttempts");
+            System.clearProperty("api.retry.delayMs");
+        }
+    }
+
+    @Test
     public void should_report_retry_remaining_correctly() {
 
         RetryPolicy policy = new RetryPolicy(2, 1000L);

@@ -15,16 +15,11 @@
 
     <properties>
         <cucumber.filter.tags>@mock and @e2e</cucumber.filter.tags>
+        <dataproviderthreadcount>5</dataproviderthreadcount>
         <runner.class>ApiTestRunner</runner.class>
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-java</artifactId>
-            <scope>test</scope>
-        </dependency>
-
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
@@ -44,12 +39,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <version>1.7.36</version>
@@ -58,28 +47,24 @@
         <dependency>
             <groupId>io.cucumber</groupId>
             <artifactId>cucumber-java</artifactId>
-            <version>7.20.1</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>io.cucumber</groupId>
             <artifactId>cucumber-testng</artifactId>
-            <version>7.20.1</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>io.cucumber</groupId>
             <artifactId>cucumber-picocontainer</artifactId>
-            <version>7.20.1</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>io.qameta.allure</groupId>
             <artifactId>allure-cucumber7-jvm</artifactId>
-            <version>2.29.1</version>
             <scope>test</scope>
         </dependency>
 
@@ -93,13 +78,11 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.17.2</version>
         </dependency>
 
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>json-schema-validator</artifactId>
-            <version>5.5.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -136,6 +119,9 @@
                         <include>**/${runner.class}.java</include>
                         <include>**/SensitiveDataMaskerTest.java</include>
                         <include>**/ScenarioContextUtilsTest.java</include>
+                        <include>**/AllureUtilsTest.java</include>
+                        <include>**/AssertionUtilsTest.java</include>
+                        <include>**/PollingUtilsTest.java</include>
                         <include>**/AuthManagerTest.java</include>
                         <include>**/RequestParamManagerTest.java</include>
                         <include>**/RequestBodyResolverTest.java</include>
@@ -143,13 +129,14 @@
                         <include>**/RetryPolicyTest.java</include>
                         <include>**/RuntimeContextWriterTest.java</include>
                         <include>**/ApiRuntimeBridgeExportTest.java</include>
+                        <include>**/TestDataFactoryTest.java</include>
                     </includes>
                     <forkCount>1</forkCount>
                     <reuseForks>true</reuseForks>
                     <properties>
                         <property>
                             <name>dataproviderthreadcount</name>
-                            <value>5</value>
+                            <value>${dataproviderthreadcount}</value>
                         </property>
                     </properties>
                     <systemPropertyVariables>

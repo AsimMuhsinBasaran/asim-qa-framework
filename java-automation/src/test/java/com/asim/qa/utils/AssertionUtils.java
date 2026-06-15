@@ -2,10 +2,11 @@ package com.asim.qa.utils;
 
 import io.qameta.allure.Allure;
 
+import java.math.BigDecimal;
+
 import static org.testng.Assert.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
 
-import io.restassured.module.jsv.JsonSchemaValidator;
 import io.restassured.response.Response;
 
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
@@ -14,9 +15,11 @@ public class AssertionUtils {
 
     public static void assertField(Object actual, String expected, String fieldName) {
 
-        String actualValue = String.valueOf(actual);
+        Object expectedValue = normalizeExpectedValue(expected, actual);
+        String expectedType = typeName(expectedValue);
+        String actualType = typeName(actual);
         String maskedExpected = SensitiveDataMasker.mask(fieldName, expected);
-        String maskedActual = SensitiveDataMasker.mask(fieldName, actualValue);
+        String maskedActual = SensitiveDataMasker.mask(fieldName, actual);
 
         ConsoleLogger.info("Field", fieldName);
         ConsoleLogger.info("Expected", maskedExpected);
@@ -25,12 +28,22 @@ public class AssertionUtils {
         Allure.addAttachment(
                 "Assertion - " + fieldName,
                 "Expected : " + maskedExpected + "\n" +
-                        "Actual   : " + maskedActual
+                        "Actual   : " + maskedActual + "\n" +
+                        "Expected Type: " + expectedType + "\n" +
+                        "Actual Type  : " + actualType
         );
 
         try {
 
-            assertEquals(actualValue, expected);
+            if (!valuesEqual(actual, expectedValue)) {
+                throw new AssertionError(
+                        "Field assertion failed: path=" + fieldName +
+                                ", expected=" + expected +
+                                ", expectedType=" + expectedType +
+                                ", actual=" + actual +
+                                ", actualType=" + actualType
+                );
+            }
 
         } catch (AssertionError e) {
 
@@ -38,6 +51,87 @@ public class AssertionUtils {
 
             throw e;
         }
+    }
+
+    public static boolean matchesExpected(Object actual, String expected) {
+
+        Object expectedValue = normalizeExpectedValue(expected, actual);
+
+        return valuesEqual(actual, expectedValue);
+    }
+
+    public static String actualType(Object actual) {
+
+        return typeName(actual);
+    }
+
+    private static Object normalizeExpectedValue(String expected, Object actual) {
+
+        if (actual == null && "null".equalsIgnoreCase(expected)) {
+            return null;
+        }
+
+        if (actual instanceof Boolean) {
+            if ("true".equalsIgnoreCase(expected) || "false".equalsIgnoreCase(expected)) {
+                return Boolean.parseBoolean(expected);
+            }
+
+            return expected;
+        }
+
+        if (actual instanceof Number && isNumeric(expected) && !hasAmbiguousLeadingZero(expected)) {
+            return new BigDecimal(expected.trim());
+        }
+
+        return expected;
+    }
+
+    private static boolean hasAmbiguousLeadingZero(String value) {
+
+        String trimmedValue = value.trim();
+        String unsignedValue = trimmedValue.startsWith("-") || trimmedValue.startsWith("+")
+                ? trimmedValue.substring(1)
+                : trimmedValue;
+
+        int decimalSeparatorIndex = unsignedValue.indexOf('.');
+        String integerPart = decimalSeparatorIndex >= 0
+                ? unsignedValue.substring(0, decimalSeparatorIndex)
+                : unsignedValue;
+
+        return integerPart.length() > 1 && integerPart.startsWith("0");
+    }
+
+    private static boolean valuesEqual(Object actual, Object expected) {
+
+        if (actual == null || expected == null) {
+            return actual == expected;
+        }
+
+        if (actual instanceof Number && expected instanceof BigDecimal) {
+            BigDecimal actualNumber = new BigDecimal(String.valueOf(actual));
+            return actualNumber.compareTo((BigDecimal) expected) == 0;
+        }
+
+        return actual.equals(expected);
+    }
+
+    private static boolean isNumeric(String value) {
+
+        if (value == null || value.isBlank()) {
+            return false;
+        }
+
+        try {
+            new BigDecimal(value.trim());
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    private static String typeName(Object value) {
+
+        return value == null ? "null" : value.getClass().getSimpleName();
     }
 
     public static void assertFieldNotNull(String fieldName, Object actual) {

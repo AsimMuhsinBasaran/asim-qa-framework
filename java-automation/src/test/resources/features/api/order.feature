@@ -1,3 +1,4 @@
+@api
 Feature: Order API - E2E Flows
 
   @mock @e2e

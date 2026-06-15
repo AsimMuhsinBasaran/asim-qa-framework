@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class PollingUtils {
@@ -28,8 +29,10 @@ public class PollingUtils {
                 timeoutSeconds,
                 intervalSeconds,
                 "response status code should be " + expectedStatusCode,
+                "statusCode",
+                String.valueOf(expectedStatusCode),
                 () -> context.getResponse().getStatusCode(),
-                () -> context.getResponse().getStatusCode() == expectedStatusCode
+                actual -> Objects.equals(actual, expectedStatusCode)
         );
     }
 
@@ -46,8 +49,10 @@ public class PollingUtils {
                 timeoutSeconds,
                 intervalSeconds,
                 "response field \"" + field + "\" should be \"" + expectedValue + "\"",
+                field,
+                expectedValue,
                 () -> context.getJsonPath().get(field),
-                () -> Objects.equals(String.valueOf((Object) context.getJsonPath().get(field)), expectedValue)
+                actual -> fieldValueMatchesExpected(actual, expectedValue)
         );
     }
 
@@ -63,8 +68,10 @@ public class PollingUtils {
                 timeoutSeconds,
                 intervalSeconds,
                 "response field \"" + field + "\" should not be null",
+                field,
+                "NOT NULL",
                 () -> context.getJsonPath().get(field),
-                () -> context.getJsonPath().get(field) != null
+                actual -> actual != null
         );
     }
 
@@ -73,8 +80,10 @@ public class PollingUtils {
                              long timeoutSeconds,
                              long intervalSeconds,
                              String conditionDescription,
+                             String fieldPath,
+                             String expectedValue,
                              Supplier<Object> actualValueSupplier,
-                             Supplier<Boolean> condition) {
+                             Predicate<Object> condition) {
 
         TestContext.LastRequest lastRequest = requireGetLastRequest(context);
 
@@ -104,7 +113,7 @@ public class PollingUtils {
                 ConsoleLogger.info("Poll Condition", conditionDescription);
                 ConsoleLogger.info("Poll Actual", lastActualValue);
 
-                if (Boolean.TRUE.equals(condition.get())) {
+                if (condition.test(lastActualValue)) {
                     AllureUtils.attachPollingSummary(buildPollingSummary(conditionDescription, summaryLines, true, attempts, lastActualValue));
                     ConsoleLogger.pass("Polling condition sağlandı");
                     return;
@@ -117,7 +126,10 @@ public class PollingUtils {
                     throw new AssertionError(
                             "Polling timed out after " + timeoutSeconds + " seconds and " + attempts +
                                     " attempts. Condition: " + conditionDescription +
+                                    ". Path: " + fieldPath +
+                                    ". Expected: " + expectedValue +
                                     ". Last actual value: " + lastActualValue +
+                                    ". Actual type: " + AssertionUtils.actualType(lastActualValue) +
                                     ". Last request: GET " + lastRequest.getEndpoint()
                     );
                 }
@@ -181,6 +193,11 @@ public class PollingUtils {
         }
 
         return lastRequest;
+    }
+
+    static boolean fieldValueMatchesExpected(Object actual, String expectedValue) {
+
+        return AssertionUtils.matchesExpected(actual, expectedValue);
     }
 
     private static void updateContextWithPollAttempt(TestContext context,
